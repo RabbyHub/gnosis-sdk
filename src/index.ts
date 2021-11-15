@@ -1,5 +1,5 @@
 import { Contract } from 'ethers'
-import { getSafeInfo } from './api';
+import { getSafeInfo, getPendingTransactions } from './api';
 import {
   getSafeSingletonDeployment,
 } from '@gnosis.pm/safe-deployments';
@@ -22,11 +22,12 @@ class Safe {
   }
 
   async init() {
-    const safeInfo = await this.getSafeInfo()
-    const owners = await this.getOwners();
-    console.log('safeInfo', safeInfo);
-    console.log('owners', owners);
-    this.owners = owners;
+    const safeInfo = await this.getSafeInfo();
+    if (this.version !== safeInfo.version) {
+      throw new Error(`Current version ${this.version} not matched address version ${safeInfo.version}`);
+    }
+    this.version = safeInfo.version;
+    this.owners = safeInfo.owners;
   }
 
   async getOwners(): Promise<string[]> {
@@ -39,9 +40,16 @@ class Safe {
     return getSafeInfo(this.safeAddress);
   }
 
-  async getNonce() {
-    const nonce = this.contract.nonce();
-    console.log(nonce);
+  async getNonce(): Promise<number> {
+    const nonce = await this.contract.nonce();
+    return nonce.toNumber();
+  }
+
+  async getTransactions() {
+    const nonce = await this.getNonce();
+    const transactions = await getPendingTransactions(this.safeAddress, nonce);
+    
+    return transactions;
   }
 }
 
