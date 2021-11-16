@@ -4,6 +4,8 @@ import {
   getSafeSingletonDeployment,
 } from '@gnosis.pm/safe-deployments';
 import { SingletonDeployment } from '@gnosis.pm/safe-deployments/src/types'
+import { SafeTransactionData } from '@gnosis.pm/safe-core-sdk-types';
+import SafeTransaction from '@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/SafeTransaction';
 
 class Safe {
   contract: Contract;
@@ -50,6 +52,18 @@ class Safe {
     const transactions = await getPendingTransactions(this.safeAddress, nonce);
     
     return transactions;
+  }
+
+  async buildTransaction(data: SafeTransactionData) {
+    return new SafeTransaction(data);
+  }
+
+  async getTransactionHash(transaction: SafeTransaction) {
+
+  }
+
+  async signTransaction(transaction: SafeTransaction, sig) {
+
   }
 }
 
