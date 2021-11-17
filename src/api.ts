@@ -45,7 +45,7 @@ interface SafeTransactionItem {
   signatures: string | null;
 }
 
-const host = "https://safe-transaction.gnosis.io/api";
+const host = "https://safe-transaction.gnosis.io/api/v1";
 const request = axios.create({
   baseURL: host,
 });
