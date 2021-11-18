@@ -1,7 +1,7 @@
-import axios, { AxiosPromise } from "axios";
+import axios, { Axios } from "axios";
 import { toChecksumAddress } from "web3-utils";
 
-interface SafeInfo {
+export interface SafeInfo {
   address: string;
   fallbackHandler: string;
   guard: string;
@@ -14,59 +14,90 @@ interface SafeInfo {
 }
 
 interface ConfirmationItem {
-  owner: string
-  submissionDate: string
-  transactionHash: string | null
-  signature: string
-  signatureType: string
+  owner: string;
+  submissionDate: string;
+  transactionHash: string | null;
+  signature: string;
+  signatureType: string;
 }
 
 interface SafeTransactionItem {
-  safe: string
-  to: string
-  value: string
-  data: string | null
-  operation: number
-  gasToken: string
-  safeTxGas: number
-  baseGas: number
-  gasPrice: string
-  refundReceiver: string
-  nonce: number
+  safe: string;
+  to: string;
+  value: string;
+  data: string | null;
+  operation: number;
+  gasToken: string;
+  safeTxGas: number;
+  baseGas: number;
+  gasPrice: string;
+  refundReceiver: string;
+  nonce: number;
   executionDate: string | null;
-  submissionDate: string
+  submissionDate: string;
   modified: string;
   blockNumber: number | null;
-  transactionHash: string | null
-  safeTxHash: string
-  executor: string | null
-  isExecuted: boolean
-  confirmations: ConfirmationItem[]
+  transactionHash: string | null;
+  safeTxHash: string;
+  executor: string | null;
+  isExecuted: boolean;
+  confirmations: ConfirmationItem[];
   signatures: string | null;
 }
 
 const host = "https://safe-transaction.gnosis.io/api/v1";
-const request = axios.create({
-  baseURL: host,
-});
 
-request.interceptors.response.use((response) => {
-  return response.data;
-});
+const HOST_MAP = {
+  '1': "https://safe-transaction.gnosis.io/api/v1",
+  '137': 'https://safe-transaction.polygon.gnosis.io/api/v1',
+  '56': 'https://safe-transaction.bsc.gnosis.io/api/v1',
+  '100': 'https://safe-transaction.xdai.gnosis.io/api/v1'
+}
 
-export const getPendingTransactions = (safeAddress: string, nonce: number): Promise<{ results: SafeTransactionItem[] }> =>
-  request.get(`/safes/${safeAddress}/multisig-transactions/`, {
-    params: {
-      executed: false,
-      nonce__gte: nonce,
-    },
-  });
+export default class RequestProvider {
+  host: string
+  request: Axios
 
-export const postTransactions = (safeAddres: string, data) =>
-  request.post(
-    `/safes/${toChecksumAddress(safeAddres)}/multisig-transactions/`,
-    data
-  );
+  constructor(networkId: string) {
+    if (!(networkId in HOST_MAP)) {
+      throw new Error('Wrong networkId')
+    }
 
-export const getSafeInfo = (safeAddress: string): Promise<SafeInfo> =>
-  request.get(`/safes/${safeAddress}/`);
+    this.host = HOST_MAP[networkId]
+
+    this.request = axios.create({
+      baseURL: this.host
+    })
+
+    this.request.interceptors.response.use((response) => {
+      return response.data;
+    });
+  }
+
+  getPendingTransactions(
+    safeAddress: string,
+    nonce: number
+  ): Promise<{ results: SafeTransactionItem[] }> {
+    return this.request.get(`/safes/${safeAddress}/multisig-transactions/`, {
+      params: {
+        executed: false,
+        nonce__gte: nonce,
+      },
+    });
+  }
+
+  postTransactions(safeAddres: string, data): Promise<void> {
+    return this.request.post(
+      `/safes/${toChecksumAddress(safeAddres)}/multisig-transactions/`,
+      data
+    );
+  }
+
+  getSafeInfo(safeAddress: string): Promise<SafeInfo> {
+    return this.request.get(`/safes/${safeAddress}/`);
+  }
+
+  confirmTransaction(hash: string, data): Promise<void> {
+    return this.request.post(`/multisig-transactions/${hash}/confirmations/`, data);
+  }
+}
