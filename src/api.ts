@@ -45,8 +45,6 @@ interface SafeTransactionItem {
   signatures: string | null;
 }
 
-const host = "https://safe-transaction.gnosis.io/api/v1";
-
 const HOST_MAP = {
   '1': "https://safe-transaction.gnosis.io/api/v1",
   '137': 'https://safe-transaction.polygon.gnosis.io/api/v1',

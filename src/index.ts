@@ -30,6 +30,7 @@ class Safe {
   provider: providers.Web3Provider;
   safeInfo: SafeInfo | null = null;
   request: RequestProvider;
+  network: string;
 
   constructor(
     safeAddress: string,
@@ -48,12 +49,18 @@ class Safe {
     this.contract = new Contract(safeAddress, contract.abi, this.provider);
     this.version = version;
     this.safeAddress = safeAddress;
+    this.network = network;
     this.request = new RequestProvider(network);
     this.init();
   }
 
+  static getSafeInfo(safeAddress: string, network: string) {
+    const request = new RequestProvider(network);
+    return request.getSafeInfo(safeAddress);
+  }
+
   async init() {
-    const safeInfo = await this.getSafeInfo();
+    const safeInfo = await Safe.getSafeInfo(this.safeAddress, this.network);
     this.safeInfo = safeInfo;
     if (this.version !== safeInfo.version) {
       throw new Error(
@@ -73,10 +80,6 @@ class Safe {
   async getThreshold() {
     const threshold = await this.contract.getThreshold();
     return threshold.toNumber();
-  }
-
-  getSafeInfo() {
-    return this.request.getSafeInfo(this.safeAddress);
   }
 
   async getNonce(): Promise<number> {
