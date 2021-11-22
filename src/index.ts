@@ -240,18 +240,18 @@ class Safe {
     };
 
     const txResponse = await contract.execTransaction(
-        safeTransaction.data.to,
-        safeTransaction.data.value,
-        safeTransaction.data.data,
-        safeTransaction.data.operation,
-        safeTransaction.data.safeTxGas,
-        safeTransaction.data.baseGas,
-        safeTransaction.data.gasPrice,
-        safeTransaction.data.gasToken,
-        safeTransaction.data.refundReceiver,
-        safeTransaction.encodedSignatures(),
-        executionOptions
-      )
+      safeTransaction.data.to,
+      safeTransaction.data.value,
+      safeTransaction.data.data,
+      safeTransaction.data.operation,
+      safeTransaction.data.safeTxGas,
+      safeTransaction.data.baseGas,
+      safeTransaction.data.gasPrice,
+      safeTransaction.data.gasToken,
+      safeTransaction.data.refundReceiver,
+      safeTransaction.encodedSignatures(),
+      executionOptions
+    )
 
     return toTxResult(txResponse, executionOptions);
   }

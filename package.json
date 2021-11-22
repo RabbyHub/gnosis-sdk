@@ -1,5 +1,5 @@
 {
-  "name": "gnosis-sdk",
+  "name": "@rabby-wallet/gnosis-sdk",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
