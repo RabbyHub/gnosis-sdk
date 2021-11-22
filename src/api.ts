@@ -21,7 +21,7 @@ interface ConfirmationItem {
   signatureType: string;
 }
 
-interface SafeTransactionItem {
+export interface SafeTransactionItem {
   safe: string;
   to: string;
   value: string;
