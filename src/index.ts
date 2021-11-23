@@ -19,7 +19,6 @@ import {
   generateSignature,
   generatePreValidatedSignature,
   estimateGasForTransactionExecution,
-  toTxResult,
 } from "./utils";
 
 class Safe {
@@ -89,7 +88,10 @@ class Safe {
 
   async getPendingTransactions() {
     const nonce = await this.getNonce();
-    const transactions = await this.request.getPendingTransactions(this.safeAddress, nonce);
+    const transactions = await this.request.getPendingTransactions(
+      this.safeAddress,
+      nonce
+    );
 
     return transactions;
   }
@@ -251,9 +253,9 @@ class Safe {
       safeTransaction.data.refundReceiver,
       safeTransaction.encodedSignatures(),
       executionOptions
-    )
+    );
 
-    return toTxResult(txResponse, executionOptions);
+    return txResponse;
   }
 }
 

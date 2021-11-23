@@ -1,18 +1,12 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract, providers } from "ethers";
 import {
-  MetaTransactionData,
   OperationType,
   SafeTransactionData,
   SafeTransactionDataPartial,
   SafeSignature,
   SafeTransaction,
 } from "@gnosis.pm/safe-core-sdk-types";
-import {
-  TransactionOptions,
-  Web3TransactionResult,
-} from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
-import { PromiEvent, TransactionReceipt } from "web3-core/types";
 import { bufferToHex, ecrecover, pubToAddress } from "ethereumjs-util";
 import { ZERO_ADDRESS, SENTINEL_ADDRESS } from "./constants";
 import EthSignSignature from "@gnosis.pm/safe-core-sdk/dist/src/utils/signatures/SafeSignature";
@@ -235,17 +229,4 @@ export async function estimateGasForTransactionExecution(
   } catch (error) {
     return Promise.reject(error);
   }
-}
-
-export function toTxResult(
-  promiEvent: PromiEvent<TransactionReceipt>,
-  options?: TransactionOptions
-): Promise<Web3TransactionResult> {
-  return new Promise((resolve, reject) =>
-    promiEvent
-      .once("transactionHash", (hash: string) =>
-        resolve({ hash, promiEvent, options })
-      )
-      .catch(reject)
-  );
 }
