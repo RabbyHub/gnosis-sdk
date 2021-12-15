@@ -55,7 +55,18 @@ class Safe {
 
   static getSafeInfo(safeAddress: string, network: string) {
     const request = new RequestProvider(network);
-    return request.getSafeInfo(safeAddress);
+    return request.getSafeInfo(toChecksumAddress(safeAddress));
+  }
+
+  static async getPendingTransactions(safeAddress: string, network: string) {
+    const request = new RequestProvider(network);
+    const nonce = (await request.getSafeInfo(toChecksumAddress(safeAddress))).nonce;
+    const transactions = await request.getPendingTransactions(
+      safeAddress,
+      nonce
+    );
+
+    return transactions;
   }
 
   async init() {
@@ -84,16 +95,6 @@ class Safe {
   async getNonce(): Promise<number> {
     const nonce = await this.contract.nonce();
     return nonce.toNumber();
-  }
-
-  async getPendingTransactions() {
-    const nonce = await this.getNonce();
-    const transactions = await this.request.getPendingTransactions(
-      this.safeAddress,
-      nonce
-    );
-
-    return transactions;
   }
 
   async buildTransaction(data: SafeTransactionDataPartial) {
