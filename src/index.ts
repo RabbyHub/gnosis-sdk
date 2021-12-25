@@ -1,5 +1,6 @@
 import { Contract } from "ethers";
 import { BigNumber } from "@ethersproject/bignumber";
+import BN from 'bignumber.js';
 import { getSafeSingletonDeployment } from "@gnosis.pm/safe-deployments";
 import { providers } from "ethers";
 import { toChecksumAddress } from "web3-utils";
@@ -160,7 +161,7 @@ class Safe {
     await this.request.postTransactions(this.safeAddress, {
       safe: safeAddress,
       to: toChecksumAddress(transaction.data.to),
-      value: Number(transaction.data.value),
+      value: new BN(transaction.data.value).toFixed(),
       data: transaction.data.data,
       operation: transaction.data.operation,
       gasToken: transaction.data.gasToken,
