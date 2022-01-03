@@ -76,7 +76,7 @@ export default class RequestProvider {
     safeAddress: string,
     nonce: number
   ): Promise<{ results: SafeTransactionItem[] }> {
-    return this.request.get(`/safes/${safeAddress}/multisig-transactions/`, {
+    return this.request.get(`/safes/${toChecksumAddress(safeAddress)}/multisig-transactions/`, {
       params: {
         executed: false,
         nonce__gte: nonce,
@@ -92,7 +92,7 @@ export default class RequestProvider {
   }
 
   getSafeInfo(safeAddress: string): Promise<SafeInfo> {
-    return this.request.get(`/safes/${safeAddress}/`);
+    return this.request.get(`/safes/${toChecksumAddress(safeAddress)}/`);
   }
 
   confirmTransaction(hash: string, data): Promise<void> {
