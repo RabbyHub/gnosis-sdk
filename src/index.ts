@@ -1,26 +1,27 @@
-import { Contract } from "ethers";
-import { BigNumber } from "@ethersproject/bignumber";
+import { Contract } from 'ethers';
+import { BigNumber } from '@ethersproject/bignumber';
 import BN from 'bignumber.js';
-import { getSafeSingletonDeployment } from "@gnosis.pm/safe-deployments";
-import { providers } from "ethers";
-import { toChecksumAddress } from "web3-utils";
+import { getSafeSingletonDeployment } from '@gnosis.pm/safe-deployments';
+import { providers } from 'ethers';
+import { toChecksumAddress } from 'web3-utils';
 import {
   SafeTransactionDataPartial,
-  SafeSignature,
-} from "@gnosis.pm/safe-core-sdk-types";
+  SafeSignature
+} from '@gnosis.pm/safe-core-sdk-types';
 import {
   TransactionResult,
-  TransactionOptions,
-} from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
-import SafeTransaction from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/SafeTransaction";
-import RequestProvider, { SafeInfo } from "./api";
+  TransactionOptions
+} from '@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types';
+import SafeTransaction from '@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/SafeTransaction';
+import RequestProvider, { SafeInfo } from './api';
 import {
   standardizeSafeTransactionData,
   sameString,
   generateSignature,
   generatePreValidatedSignature,
-  estimateGasForTransactionExecution,
-} from "./utils";
+  estimateGasForTransactionExecution
+} from './utils';
+import { AxiosAdapter } from 'axios';
 
 class Safe {
   contract: Contract;
@@ -32,36 +33,39 @@ class Safe {
   request: RequestProvider;
   network: string;
 
+  static adapter: AxiosAdapter;
+
   constructor(
     safeAddress: string,
     version: string,
     provider: providers.Web3Provider,
-    network = "1"
+    network = '1'
   ) {
     const contract = getSafeSingletonDeployment({
       version,
-      network,
+      network
     });
     if (!contract) {
-      throw new Error("Wrong version or network");
+      throw new Error('Wrong version or network');
     }
     this.provider = provider;
     this.contract = new Contract(safeAddress, contract.abi, this.provider);
     this.version = version;
     this.safeAddress = safeAddress;
     this.network = network;
-    this.request = new RequestProvider(network);
+    this.request = new RequestProvider(network, Safe.adapter);
     this.init();
   }
 
   static getSafeInfo(safeAddress: string, network: string) {
-    const request = new RequestProvider(network);
+    const request = new RequestProvider(network, Safe.adapter);
     return request.getSafeInfo(toChecksumAddress(safeAddress));
   }
 
   static async getPendingTransactions(safeAddress: string, network: string) {
-    const request = new RequestProvider(network);
-    const nonce = (await request.getSafeInfo(toChecksumAddress(safeAddress))).nonce;
+    const request = new RequestProvider(network, Safe.adapter);
+    const nonce = (await request.getSafeInfo(toChecksumAddress(safeAddress)))
+      .nonce;
     const transactions = await request.getPendingTransactions(
       safeAddress,
       nonce
@@ -132,7 +136,7 @@ class Safe {
       (owner: string) => signerAddress && sameString(owner, signerAddress)
     );
     if (!addressIsOwner) {
-      throw new Error("Transactions can only be signed by Safe owners");
+      throw new Error('Transactions can only be signed by Safe owners');
     }
     return generateSignature(this.provider, hash);
   }
@@ -173,7 +177,7 @@ class Safe {
       nonce: transaction.data.nonce,
       contractTransactionHash: hash,
       sender: toChecksumAddress(signerAddress),
-      signature: transaction.encodedSignatures(),
+      signature: transaction.encodedSignatures()
     });
   }
 
@@ -217,9 +221,9 @@ class Safe {
       const signaturesMissing = threshold - safeTransaction.signatures.size;
       throw new Error(
         `There ${
-          signaturesMissing > 1 ? "are" : "is"
+          signaturesMissing > 1 ? 'are' : 'is'
         } ${signaturesMissing} signature${
-          signaturesMissing > 1 ? "s" : ""
+          signaturesMissing > 1 ? 's' : ''
         } missing`
       );
     }
@@ -228,7 +232,7 @@ class Safe {
     if (!value.isZero()) {
       const balance = await this.getBalance();
       if (value.gt(BigNumber.from(balance))) {
-        throw new Error("Not enough Ether funds");
+        throw new Error('Not enough Ether funds');
       }
     }
 
@@ -240,7 +244,7 @@ class Safe {
     const executionOptions: TransactionOptions = {
       gasLimit,
       gasPrice: options?.gasPrice,
-      from: signerAddress,
+      from: signerAddress
     };
 
     const txResponse = await contract.execTransaction(

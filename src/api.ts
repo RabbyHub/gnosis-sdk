@@ -1,5 +1,5 @@
-import axios, { Axios } from "axios";
-import { toChecksumAddress } from "web3-utils";
+import axios, { Axios, AxiosAdapter } from 'axios';
+import { toChecksumAddress } from 'web3-utils';
 
 export interface SafeInfo {
   address: string;
@@ -46,26 +46,27 @@ export interface SafeTransactionItem {
 }
 
 const HOST_MAP = {
-  '1': "https://safe-transaction.gnosis.io/api/v1",
+  '1': 'https://safe-transaction.gnosis.io/api/v1',
   '137': 'https://safe-transaction.polygon.gnosis.io/api/v1',
   '56': 'https://safe-transaction.bsc.gnosis.io/api/v1',
   '100': 'https://safe-transaction.xdai.gnosis.io/api/v1'
-}
+};
 
 export default class RequestProvider {
-  host: string
-  request: Axios
+  host: string;
+  request: Axios;
 
-  constructor(networkId: string) {
+  constructor(networkId: string, adapter?: AxiosAdapter) {
     if (!(networkId in HOST_MAP)) {
-      throw new Error('Wrong networkId')
+      throw new Error('Wrong networkId');
     }
 
-    this.host = HOST_MAP[networkId]
+    this.host = HOST_MAP[networkId];
 
     this.request = axios.create({
-      baseURL: this.host
-    })
+      baseURL: this.host,
+      adapter
+    });
 
     this.request.interceptors.response.use((response) => {
       return response.data;
@@ -76,12 +77,15 @@ export default class RequestProvider {
     safeAddress: string,
     nonce: number
   ): Promise<{ results: SafeTransactionItem[] }> {
-    return this.request.get(`/safes/${toChecksumAddress(safeAddress)}/multisig-transactions/`, {
-      params: {
-        executed: false,
-        nonce__gte: nonce,
-      },
-    });
+    return this.request.get(
+      `/safes/${toChecksumAddress(safeAddress)}/multisig-transactions/`,
+      {
+        params: {
+          executed: false,
+          nonce__gte: nonce
+        }
+      }
+    );
   }
 
   postTransactions(safeAddres: string, data): Promise<void> {
@@ -96,6 +100,9 @@ export default class RequestProvider {
   }
 
   confirmTransaction(hash: string, data): Promise<void> {
-    return this.request.post(`/multisig-transactions/${hash}/confirmations/`, data);
+    return this.request.post(
+      `/multisig-transactions/${hash}/confirmations/`,
+      data
+    );
   }
 }
