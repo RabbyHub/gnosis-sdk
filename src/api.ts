@@ -46,10 +46,11 @@ export interface SafeTransactionItem {
 }
 
 const HOST_MAP = {
-  '1': 'https://safe-transaction.gnosis.io/api/v1',
-  '137': 'https://safe-transaction.polygon.gnosis.io/api/v1',
-  '56': 'https://safe-transaction.bsc.gnosis.io/api/v1',
-  '100': 'https://safe-transaction.xdai.gnosis.io/api/v1'
+  '1': 'https://safe-transaction-mainnet.safe.global/api/v1',
+  '137': 'https://safe-transaction-polygon.safe.global/api/v1',
+  '56': 'https://safe-transaction-bsc.safe.global/api/v1',
+  '100': 'https://safe-transaction-gnosis-chain.safe.global/api/v1',
+  '43114': 'https://safe-transaction-avalanche.safe.global/api/v1'
 };
 
 export default class RequestProvider {
