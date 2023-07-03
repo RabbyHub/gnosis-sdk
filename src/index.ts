@@ -68,12 +68,24 @@ class Safe {
     return request.getSafeInfo(toChecksumAddress(safeAddress));
   }
 
-  static async getPendingTransactions(safeAddress: string, network: string) {
+  static async getPendingTransactions(
+    safeAddress: string,
+    network: string,
+    nonce: number
+  ) {
     const request = new RequestProvider(network, Safe.adapter);
-    const nonce = (await request.getSafeInfo(toChecksumAddress(safeAddress)))
-      .nonce;
     const transactions = await request.getPendingTransactions(
       safeAddress,
+      nonce
+    );
+
+    return transactions;
+  }
+
+  async getPendingTransactions() {
+    const nonce = await this.getNonce();
+    const transactions = await this.request.getPendingTransactions(
+      this.safeAddress,
       nonce
     );
 
