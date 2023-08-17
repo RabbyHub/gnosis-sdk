@@ -53,7 +53,8 @@ const HOST_MAP = {
   '43114': 'https://safe-transaction-avalanche.safe.global/api/v1',
   '42161': 'https://safe-transaction-arbitrum.safe.global/api/v1',
   '10': 'https://safe-transaction-optimism.safe.global/api/v1',
-  '1313161554': 'https://safe-transaction-aurora.safe.global/api/v1'
+  '1313161554': 'https://safe-transaction-aurora.safe.global/api/v1',
+  "8453": "https://safe-transaction-base.safe.global/api/v1",
 };
 
 export default class RequestProvider {
