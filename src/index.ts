@@ -174,7 +174,9 @@ class Safe {
       this.safeAddress,
       this.contract,
       this.provider,
-      data
+      data,
+      this.network,
+      this.version
     );
     return new SafeTransaction(transaction);
   }
