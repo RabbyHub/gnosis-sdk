@@ -10,6 +10,9 @@ import {
 import { bufferToHex, ecrecover, pubToAddress } from "ethereumjs-util";
 import { ZERO_ADDRESS, SENTINEL_ADDRESS } from "./constants";
 import EthSignSignature from "@gnosis.pm/safe-core-sdk/dist/src/utils/signatures/SafeSignature";
+import semverSatisfies from "semver/functions/satisfies";
+import RequestProvider from "./api";
+import Safe from "./index";
 
 function estimateDataGasCosts(data: string): number {
   const reducer = (accumulator: number, currentValue: string) => {
@@ -39,6 +42,11 @@ function isSentinelAddress(address: string): boolean {
 export function isRestrictedAddress(address: string): boolean {
   return isZeroAddress(address) || isSentinelAddress(address);
 }
+
+export const isLegacyVersion = (safeVersion: string): boolean => {
+  const LEGACY_VERSION = "<1.3.0";
+  return semverSatisfies(safeVersion, LEGACY_VERSION);
+};
 
 export async function estimateTxGas(
   safeAddress: string,
@@ -109,7 +117,9 @@ export async function standardizeSafeTransactionData(
   safeAddress: string,
   safeContract: Contract,
   provider: any,
-  tx: SafeTransactionDataPartial
+  tx: SafeTransactionDataPartial,
+  network: string,
+  version: string
 ): Promise<SafeTransactionData> {
   const standardizedTxs = {
     to: tx.to,
@@ -122,20 +132,13 @@ export async function standardizeSafeTransactionData(
     refundReceiver: tx.refundReceiver || ZERO_ADDRESS,
     nonce: tx.nonce ?? (await safeContract.nonce()).toNumber(),
   };
+  const request = new RequestProvider(network, Safe.adapter);
   const safeTxGas =
     tx.safeTxGas ??
-    (await estimateTxGas(
-      safeAddress,
-      safeContract,
-      provider,
-      standardizedTxs.to,
-      standardizedTxs.value,
-      standardizedTxs.data,
-      standardizedTxs.operation
-    ));
+    (await request.getSafeTxGas(safeAddress, version, standardizedTxs));
   return {
     ...standardizedTxs,
-    safeTxGas,
+    safeTxGas: safeTxGas || 0,
   };
 }
 
