@@ -96,6 +96,14 @@ const HOST_MAP = {
    * zksync era
    */
   "324": "https://safe-transaction-zksync.safe.global/api/v1",
+  /**
+   * scroll
+   */
+  "534352": "https://safe-transaction-scroll.safe.global/api/v1",
+  /**
+   * linea
+   */
+  "59144": "https://safe-transaction-linea.safe.global/api/v1",
 };
 
 export default class RequestProvider {
