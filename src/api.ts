@@ -104,6 +104,10 @@ const HOST_MAP = {
    * linea
    */
   "59144": "https://safe-transaction-linea.safe.global/api/v1",
+  /**
+   * X Layer
+   */
+  "196": "https://safe-transaction-xlayer.safe.global/api/v1",
 };
 
 export default class RequestProvider {
