@@ -13,6 +13,16 @@ import {
   TransactionOptions,
 } from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
 import SafeTransaction from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/SafeTransaction";
+import SafeTransactionNew from "@safe-global/protocol-kit/dist/src/utils/transactions/SafeTransaction";
+import SafeMessage from "@safe-global/protocol-kit/dist/src/utils/messages/SafeMessage";
+import SafeProtocolKit, {
+  generateEIP712Signature,
+  hashSafeMessage,
+  preimageSafeMessageHash,
+  SafeProvider,
+  SigningMethod,
+  SigningMethodType,
+} from "@safe-global/protocol-kit";
 import RequestProvider, { SafeInfo } from "./api";
 import {
   standardizeSafeTransactionData,
@@ -22,6 +32,31 @@ import {
   estimateGasForTransactionExecution,
 } from "./utils";
 import { AxiosAdapter } from "axios";
+import semverSatisfies from "semver/functions/satisfies";
+import {
+  EIP712TypedData,
+  SafeEIP712Args,
+  SafeSignature as SafeSignatureNew,
+} from "@safe-global/types-kit";
+import {
+  calculateSafeMessageHash,
+  EthSafeSignature,
+  generateSignature as generateSignatureNew,
+  hasSafeFeature,
+  SAFE_FEATURES,
+} from "@safe-global/protocol-kit/dist/src/utils";
+import SafeApiKit, {
+  EIP712TypedData as ApiKitEIP712TypedData,
+} from "@safe-global/api-kit";
+import { SafeClientTxStatus } from "@safe-global/sdk-starter-kit/dist/src/constants";
+import { createSafeClientResult } from "@safe-global/sdk-starter-kit/dist/src/utils";
+import {
+  SafeClientResult,
+  SendOffChainMessageProps,
+} from "@safe-global/sdk-starter-kit";
+
+const EQ_OR_GT_1_4_1 = ">=1.4.1";
+const EQ_OR_GT_1_3_0 = ">=1.3.0";
 
 class Safe {
   contract: Contract;
@@ -32,6 +67,8 @@ class Safe {
   safeInfo: SafeInfo | null = null;
   request: RequestProvider;
   network: string;
+  safeProvider: SafeProvider;
+  apiKit: SafeApiKit;
 
   static adapter: AxiosAdapter;
 
@@ -54,6 +91,12 @@ class Safe {
     this.safeAddress = safeAddress;
     this.network = network;
     this.request = new RequestProvider(network, Safe.adapter);
+    this.apiKit = new SafeApiKit({
+      chainId: BigInt(network),
+    });
+    this.safeProvider = new SafeProvider({
+      provider: provider.provider as any,
+    });
     // this.init();
   }
 
@@ -331,6 +374,199 @@ class Safe {
     );
 
     return txResponse;
+  }
+
+  /**
+   * Signs a transaction according to the EIP-712 using the current signer account.
+   *
+   * @param eip712Data - The Safe Transaction or message hash to be signed
+   * @param methodVersion - EIP-712 version. Optional
+   * @returns The Safe signature
+   */
+  async signTypedData(
+    eip712Data: SafeTransactionNew | SafeMessage,
+    methodVersion?: "v3" | "v4"
+  ): Promise<SafeSignatureNew> {
+    const safeEIP712Args: SafeEIP712Args = {
+      safeAddress: this.safeAddress,
+      safeVersion: this.version,
+      chainId: BigInt(this.network),
+      data: eip712Data.data,
+    };
+
+    return generateEIP712Signature(
+      this.safeProvider,
+      safeEIP712Args,
+      methodVersion
+    );
+  }
+
+  /**
+   * Returns the Safe message with a new signature
+   *
+   * @param message The message to be signed
+   * @param signingMethod The signature type
+   * @param preimageSafeAddress If the preimage is required, the address of the Safe that will be used to calculate the preimage.
+   * This field is mandatory for 1.4.1 contract versions Because the safe uses the old EIP-1271 interface which uses `bytes` instead of `bytes32` for the message
+   * we need to use the pre-image of the message to calculate the message hash
+   * https://github.com/safe-global/safe-contracts/blob/192c7dc67290940fcbc75165522bb86a37187069/test/core/Safe.Signatures.spec.ts#L229-L233
+   * @returns The signed Safe message
+   */
+  async signMessage(
+    message: SafeMessage,
+    signingMethod: SigningMethodType = SigningMethod.ETH_SIGN_TYPED_DATA_V4,
+    preimageSafeAddress?: string
+  ): Promise<SafeMessage> {
+    // const signerAddress = await this.#safeProvider.getSignerAddress();
+    // if (!signerAddress) {
+    //   throw new Error("The protocol-kit requires a signer to use this method");
+    // }
+
+    // const addressIsOwner = await this.isOwner(signerAddress);
+    // if (!addressIsOwner) {
+    //   throw new Error("Messages can only be signed by Safe owners");
+    // }
+
+    const safeVersion = this.version;
+    if (
+      signingMethod === SigningMethod.SAFE_SIGNATURE &&
+      semverSatisfies(safeVersion, EQ_OR_GT_1_4_1) &&
+      !preimageSafeAddress
+    ) {
+      throw new Error(
+        "The parent Safe account address is mandatory for contract signatures"
+      );
+    }
+
+    let signature: SafeSignatureNew;
+
+    if (signingMethod === SigningMethod.ETH_SIGN_TYPED_DATA_V4) {
+      signature = await this.signTypedData(message, "v4");
+    } else if (signingMethod === SigningMethod.ETH_SIGN_TYPED_DATA_V3) {
+      signature = await this.signTypedData(message, "v3");
+    } else if (signingMethod === SigningMethod.ETH_SIGN_TYPED_DATA) {
+      signature = await this.signTypedData(message, undefined);
+    } else {
+      const chainId = BigInt(this.network);
+      if (!hasSafeFeature(SAFE_FEATURES.ETH_SIGN, safeVersion)) {
+        throw new Error("eth_sign is only supported by Safes >= v1.1.0");
+      }
+
+      let safeMessageHash: string;
+
+      if (
+        signingMethod === SigningMethod.SAFE_SIGNATURE &&
+        preimageSafeAddress &&
+        semverSatisfies(safeVersion, EQ_OR_GT_1_4_1)
+      ) {
+        const messageHashData = preimageSafeMessageHash(
+          preimageSafeAddress,
+          hashSafeMessage(message.data),
+          safeVersion,
+          chainId
+        );
+
+        safeMessageHash = await this.getSafeMessageHash(messageHashData);
+      } else {
+        safeMessageHash = await this.getSafeMessageHash(
+          hashSafeMessage(message.data)
+        );
+      }
+
+      signature = await this.signHash(safeMessageHash);
+    }
+
+    const signedSafeMessage = this.createMessage(message.data);
+
+    message.signatures.forEach((signature: EthSafeSignature) => {
+      signedSafeMessage.addSignature(signature);
+    });
+
+    signedSafeMessage.addSignature(signature);
+
+    return signedSafeMessage;
+  }
+  /**
+   * Returns a Safe message ready to be signed by the owners.
+   *
+   * @param message - The message
+   * @returns The Safe message
+   */
+  createMessage(message: string | EIP712TypedData): SafeMessage {
+    return new SafeMessage(message);
+  }
+
+  /**
+   * Signs a hash using the current signer account.
+   *
+   * @param hash - The hash to sign
+   * @returns The Safe signature
+   */
+  async signHash(hash: string): Promise<SafeSignatureNew> {
+    const signature = await generateSignatureNew(this.safeProvider, hash);
+    return signature;
+  }
+
+  /**
+   * Call the CompatibilityFallbackHandler getMessageHash method
+   *
+   * @param messageHash The hash of the message
+   * @returns Returns the Safe message hash to be signed
+   * @link https://github.com/safe-global/safe-contracts/blob/8ffae95faa815acf86ec8b50021ebe9f96abde10/contracts/handler/CompatibilityFallbackHandler.sol#L26-L28
+   */
+  getSafeMessageHash = async (messageHash: string): Promise<string> => {
+    if (this.contract.getMessageHash) {
+      return this.contract.getMessageHash(messageHash);
+    }
+
+    const safeAddress = this.safeAddress;
+    const safeVersion = this.version;
+    const chainId = BigInt(this.network);
+
+    return calculateSafeMessageHash(
+      toChecksumAddress(safeAddress),
+      messageHash,
+      safeVersion,
+      chainId
+    );
+  };
+
+  /**
+   * Add a new off-chain message using the Transaction service
+   * - If the threshold > 1, remember to confirmMessage() after sendMessage()
+   * - If the threshold = 1, then the message is confirmed and valid immediately
+   *
+   * @param {SafeMessage} safeMessage The message
+   * @returns {Promise<SafeClientResult>} The SafeClientResult
+   */
+  async addMessage({ safeMessage }: { safeMessage: SafeMessage }) {
+    const safeAddress = this.safeAddress;
+    const threshold = await this.getThreshold();
+    const messageHash = await this.getSafeMessageHash(
+      hashSafeMessage(safeMessage.data)
+    );
+
+    try {
+      await this.apiKit.addMessage(safeAddress, {
+        message: safeMessage.data as string | ApiKitEIP712TypedData,
+        signature: safeMessage.encodedSignatures(),
+      });
+    } catch (error) {
+      throw new Error(
+        "Could not add a new off-chain message to the Safe account"
+      );
+    }
+
+    const message = await this.apiKit.getMessage(messageHash);
+
+    return createSafeClientResult({
+      safeAddress: this.safeAddress,
+      status:
+        message.confirmations.length === threshold
+          ? SafeClientTxStatus.MESSAGE_CONFIRMED
+          : SafeClientTxStatus.MESSAGE_PENDING_SIGNATURES,
+      messageHash,
+    });
   }
 }
 
