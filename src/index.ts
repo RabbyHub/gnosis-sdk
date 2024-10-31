@@ -67,7 +67,6 @@ class Safe {
   safeInfo: SafeInfo | null = null;
   request: RequestProvider;
   network: string;
-  safeProvider: SafeProvider;
   apiKit: SafeApiKit;
 
   static adapter: AxiosAdapter;
@@ -94,9 +93,7 @@ class Safe {
     this.apiKit = new SafeApiKit({
       chainId: BigInt(network),
     });
-    this.safeProvider = new SafeProvider({
-      provider: provider.provider as any,
-    });
+
     // this.init();
   }
 
@@ -374,137 +371,6 @@ class Safe {
     );
 
     return txResponse;
-  }
-
-  /**
-   * Signs a transaction according to the EIP-712 using the current signer account.
-   *
-   * @param eip712Data - The Safe Transaction or message hash to be signed
-   * @param methodVersion - EIP-712 version. Optional
-   * @returns The Safe signature
-   */
-  async signTypedData(
-    eip712Data: SafeTransactionNew | SafeMessage,
-    methodVersion?: "v3" | "v4"
-  ): Promise<SafeSignatureNew> {
-    const safeEIP712Args: SafeEIP712Args = {
-      safeAddress: this.safeAddress,
-      safeVersion: this.version,
-      chainId: BigInt(this.network),
-      data: eip712Data.data,
-    };
-
-    return generateEIP712Signature(
-      this.safeProvider,
-      safeEIP712Args,
-      methodVersion
-    );
-  }
-
-  /**
-   * Returns the Safe message with a new signature
-   *
-   * @param message The message to be signed
-   * @param signingMethod The signature type
-   * @param preimageSafeAddress If the preimage is required, the address of the Safe that will be used to calculate the preimage.
-   * This field is mandatory for 1.4.1 contract versions Because the safe uses the old EIP-1271 interface which uses `bytes` instead of `bytes32` for the message
-   * we need to use the pre-image of the message to calculate the message hash
-   * https://github.com/safe-global/safe-contracts/blob/192c7dc67290940fcbc75165522bb86a37187069/test/core/Safe.Signatures.spec.ts#L229-L233
-   * @returns The signed Safe message
-   */
-  async signMessage(
-    message: SafeMessage,
-    signingMethod: SigningMethodType = SigningMethod.ETH_SIGN_TYPED_DATA_V4,
-    preimageSafeAddress?: string
-  ): Promise<SafeMessage> {
-    // const signerAddress = await this.#safeProvider.getSignerAddress();
-    // if (!signerAddress) {
-    //   throw new Error("The protocol-kit requires a signer to use this method");
-    // }
-
-    // const addressIsOwner = await this.isOwner(signerAddress);
-    // if (!addressIsOwner) {
-    //   throw new Error("Messages can only be signed by Safe owners");
-    // }
-
-    const safeVersion = this.version;
-    if (
-      signingMethod === SigningMethod.SAFE_SIGNATURE &&
-      semverSatisfies(safeVersion, EQ_OR_GT_1_4_1) &&
-      !preimageSafeAddress
-    ) {
-      throw new Error(
-        "The parent Safe account address is mandatory for contract signatures"
-      );
-    }
-
-    let signature: SafeSignatureNew;
-
-    if (signingMethod === SigningMethod.ETH_SIGN_TYPED_DATA_V4) {
-      signature = await this.signTypedData(message, "v4");
-    } else if (signingMethod === SigningMethod.ETH_SIGN_TYPED_DATA_V3) {
-      signature = await this.signTypedData(message, "v3");
-    } else if (signingMethod === SigningMethod.ETH_SIGN_TYPED_DATA) {
-      signature = await this.signTypedData(message, undefined);
-    } else {
-      const chainId = BigInt(this.network);
-      if (!hasSafeFeature(SAFE_FEATURES.ETH_SIGN, safeVersion)) {
-        throw new Error("eth_sign is only supported by Safes >= v1.1.0");
-      }
-
-      let safeMessageHash: string;
-
-      if (
-        signingMethod === SigningMethod.SAFE_SIGNATURE &&
-        preimageSafeAddress &&
-        semverSatisfies(safeVersion, EQ_OR_GT_1_4_1)
-      ) {
-        const messageHashData = preimageSafeMessageHash(
-          preimageSafeAddress,
-          hashSafeMessage(message.data),
-          safeVersion,
-          chainId
-        );
-
-        safeMessageHash = await this.getSafeMessageHash(messageHashData);
-      } else {
-        safeMessageHash = await this.getSafeMessageHash(
-          hashSafeMessage(message.data)
-        );
-      }
-
-      signature = await this.signHash(safeMessageHash);
-    }
-
-    const signedSafeMessage = this.createMessage(message.data);
-
-    message.signatures.forEach((signature: EthSafeSignature) => {
-      signedSafeMessage.addSignature(signature);
-    });
-
-    signedSafeMessage.addSignature(signature);
-
-    return signedSafeMessage;
-  }
-  /**
-   * Returns a Safe message ready to be signed by the owners.
-   *
-   * @param message - The message
-   * @returns The Safe message
-   */
-  createMessage(message: string | EIP712TypedData): SafeMessage {
-    return new SafeMessage(message);
-  }
-
-  /**
-   * Signs a hash using the current signer account.
-   *
-   * @param hash - The hash to sign
-   * @returns The Safe signature
-   */
-  async signHash(hash: string): Promise<SafeSignatureNew> {
-    const signature = await generateSignatureNew(this.safeProvider, hash);
-    return signature;
   }
 
   /**
