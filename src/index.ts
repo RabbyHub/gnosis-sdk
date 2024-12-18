@@ -1,62 +1,35 @@
-import { Contract, ethers } from "ethers";
 import { BigNumber } from "@ethersproject/bignumber";
-import BN from "bignumber.js";
-import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
-import { providers } from "ethers";
-import { toChecksumAddress } from "web3-utils";
 import {
-  SafeTransactionDataPartial,
   SafeSignature,
+  SafeTransactionDataPartial,
 } from "@gnosis.pm/safe-core-sdk-types";
-import {
-  TransactionResult,
-  TransactionOptions,
-} from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
 import SafeTransaction from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/SafeTransaction";
-import SafeTransactionNew from "@safe-global/protocol-kit/dist/src/utils/transactions/SafeTransaction";
-import SafeMessage from "@safe-global/protocol-kit/dist/src/utils/messages/SafeMessage";
-import SafeProtocolKit, {
-  generateEIP712Signature,
-  hashSafeMessage,
-  preimageSafeMessageHash,
-  SafeProvider,
-  SigningMethod,
-  SigningMethodType,
-} from "@safe-global/protocol-kit";
-import RequestProvider, { SafeInfo } from "./api";
 import {
-  standardizeSafeTransactionData,
-  sameString,
-  generateSignature,
-  generatePreValidatedSignature,
-  estimateGasForTransactionExecution,
-} from "./utils";
-import { AxiosAdapter } from "axios";
-import semverSatisfies from "semver/functions/satisfies";
-import {
-  EIP712TypedData,
-  SafeEIP712Args,
-  SafeSignature as SafeSignatureNew,
-} from "@safe-global/types-kit";
-import {
-  calculateSafeMessageHash,
-  EthSafeSignature,
-  generateSignature as generateSignatureNew,
-  hasSafeFeature,
-  SAFE_FEATURES,
-} from "@safe-global/protocol-kit/dist/src/utils";
+  TransactionOptions,
+  TransactionResult,
+} from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
 import SafeApiKit, {
   EIP712TypedData as ApiKitEIP712TypedData,
 } from "@safe-global/api-kit";
+import { hashSafeMessage } from "@safe-global/protocol-kit";
+import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
+import SafeMessage from "@safe-global/protocol-kit/dist/src/utils/messages/SafeMessage";
+import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
+import { SafeClientResult } from "@safe-global/sdk-starter-kit";
 import { SafeClientTxStatus } from "@safe-global/sdk-starter-kit/dist/src/constants";
 import { createSafeClientResult } from "@safe-global/sdk-starter-kit/dist/src/utils";
+import { AxiosAdapter } from "axios";
+import BN from "bignumber.js";
+import { Contract, providers } from "ethers";
+import { toChecksumAddress } from "web3-utils";
+import RequestProvider, { SafeInfo } from "./api";
 import {
-  SafeClientResult,
-  SendOffChainMessageProps,
-} from "@safe-global/sdk-starter-kit";
-
-const EQ_OR_GT_1_4_1 = ">=1.4.1";
-const EQ_OR_GT_1_3_0 = ">=1.3.0";
+  estimateGasForTransactionExecution,
+  generatePreValidatedSignature,
+  generateSignature,
+  sameString,
+  standardizeSafeTransactionData,
+} from "./utils";
 
 class Safe {
   contract: Contract;

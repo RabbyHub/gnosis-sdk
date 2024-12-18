@@ -108,6 +108,23 @@ const HOST_MAP = {
    * X Layer
    */
   "196": "https://safe-transaction-xlayer.safe.global/api/v1",
+
+  /**
+   * mantle
+   */
+  "5000": "https://safe-transaction-mantle.safe.global",
+  /**
+   * World Chain
+   */
+  "480": "https://safe-transaction-worldchain.safe.global",
+  /**
+   * blast
+   */
+  "81457": "https://safe-transaction-blast.safe.global",
+  /**
+   * Sonic
+   */
+  "146": "https://safe-transaction-sonic.safe.global",
 };
 
 export default class RequestProvider {
