@@ -13,6 +13,16 @@ import {
   TransactionOptions,
 } from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
 import SafeTransaction from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/SafeTransaction";
+import SafeTransactionNew from "@safe-global/protocol-kit/dist/src/utils/transactions/SafeTransaction";
+import SafeMessage from "@safe-global/protocol-kit/dist/src/utils/messages/SafeMessage";
+import SafeProtocolKit, {
+  generateEIP712Signature,
+  hashSafeMessage,
+  preimageSafeMessageHash,
+  SafeProvider,
+  SigningMethod,
+  SigningMethodType,
+} from "@safe-global/protocol-kit";
 import RequestProvider, { SafeInfo } from "./api";
 import {
   standardizeSafeTransactionData,
@@ -22,6 +32,31 @@ import {
   estimateGasForTransactionExecution,
 } from "./utils";
 import { AxiosAdapter } from "axios";
+import semverSatisfies from "semver/functions/satisfies";
+import {
+  EIP712TypedData,
+  SafeEIP712Args,
+  SafeSignature as SafeSignatureNew,
+} from "@safe-global/types-kit";
+import {
+  calculateSafeMessageHash,
+  EthSafeSignature,
+  generateSignature as generateSignatureNew,
+  hasSafeFeature,
+  SAFE_FEATURES,
+} from "@safe-global/protocol-kit/dist/src/utils";
+import SafeApiKit, {
+  EIP712TypedData as ApiKitEIP712TypedData,
+} from "@safe-global/api-kit";
+import { SafeClientTxStatus } from "@safe-global/sdk-starter-kit/dist/src/constants";
+import { createSafeClientResult } from "@safe-global/sdk-starter-kit/dist/src/utils";
+import {
+  SafeClientResult,
+  SendOffChainMessageProps,
+} from "@safe-global/sdk-starter-kit";
+
+const EQ_OR_GT_1_4_1 = ">=1.4.1";
+const EQ_OR_GT_1_3_0 = ">=1.3.0";
 
 class Safe {
   contract: Contract;
@@ -32,6 +67,7 @@ class Safe {
   safeInfo: SafeInfo | null = null;
   request: RequestProvider;
   network: string;
+  apiKit: SafeApiKit;
 
   static adapter: AxiosAdapter;
 
@@ -54,6 +90,10 @@ class Safe {
     this.safeAddress = safeAddress;
     this.network = network;
     this.request = new RequestProvider(network, Safe.adapter);
+    this.apiKit = new SafeApiKit({
+      chainId: BigInt(network),
+    });
+
     // this.init();
   }
 
@@ -331,6 +371,68 @@ class Safe {
     );
 
     return txResponse;
+  }
+
+  /**
+   * Call the CompatibilityFallbackHandler getMessageHash method
+   *
+   * @param messageHash The hash of the message
+   * @returns Returns the Safe message hash to be signed
+   * @link https://github.com/safe-global/safe-contracts/blob/8ffae95faa815acf86ec8b50021ebe9f96abde10/contracts/handler/CompatibilityFallbackHandler.sol#L26-L28
+   */
+  getSafeMessageHash = async (messageHash: string): Promise<string> => {
+    if (this.contract.getMessageHash) {
+      return this.contract.getMessageHash(messageHash);
+    }
+
+    const safeAddress = this.safeAddress;
+    const safeVersion = this.version;
+    const chainId = BigInt(this.network);
+
+    return calculateSafeMessageHash(
+      toChecksumAddress(safeAddress),
+      messageHash,
+      safeVersion,
+      chainId
+    );
+  };
+
+  /**
+   * Add a new off-chain message using the Transaction service
+   * - If the threshold > 1, remember to confirmMessage() after sendMessage()
+   * - If the threshold = 1, then the message is confirmed and valid immediately
+   *
+   * @param {SafeMessage} safeMessage The message
+   * @returns {Promise<SafeClientResult>} The SafeClientResult
+   */
+  async addMessage({ safeMessage }: { safeMessage: SafeMessage }) {
+    const safeAddress = this.safeAddress;
+    const threshold = await this.getThreshold();
+    const messageHash = await this.getSafeMessageHash(
+      hashSafeMessage(safeMessage.data)
+    );
+
+    try {
+      await this.apiKit.addMessage(safeAddress, {
+        message: safeMessage.data as string | ApiKitEIP712TypedData,
+        signature: safeMessage.encodedSignatures(),
+      });
+    } catch (error) {
+      throw new Error(
+        "Could not add a new off-chain message to the Safe account"
+      );
+    }
+
+    const message = await this.apiKit.getMessage(messageHash);
+
+    return createSafeClientResult({
+      safeAddress: this.safeAddress,
+      status:
+        message.confirmations.length === threshold
+          ? SafeClientTxStatus.MESSAGE_CONFIRMED
+          : SafeClientTxStatus.MESSAGE_PENDING_SIGNATURES,
+      messageHash,
+    });
   }
 }
 
