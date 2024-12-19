@@ -10,7 +10,9 @@ import {
 } from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
 import SafeApiKit, {
   EIP712TypedData as ApiKitEIP712TypedData,
+  SafeMessage as ApiKitSafeMessage,
 } from "@safe-global/api-kit";
+import { TRANSACTION_SERVICE_URLS } from "@safe-global/api-kit/dist/src/utils/config";
 import { hashSafeMessage } from "@safe-global/protocol-kit";
 import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
 import SafeMessage from "@safe-global/protocol-kit/dist/src/utils/messages/SafeMessage";
@@ -22,7 +24,7 @@ import { AxiosAdapter } from "axios";
 import BN from "bignumber.js";
 import { Contract, providers } from "ethers";
 import { toChecksumAddress } from "web3-utils";
-import RequestProvider, { SafeInfo } from "./api";
+import RequestProvider, { HOST_MAP, SafeInfo } from "./api";
 import {
   estimateGasForTransactionExecution,
   generatePreValidatedSignature,
@@ -63,9 +65,7 @@ class Safe {
     this.safeAddress = safeAddress;
     this.network = network;
     this.request = new RequestProvider(network, Safe.adapter);
-    this.apiKit = new SafeApiKit({
-      chainId: BigInt(network),
-    });
+    this.apiKit = Safe.createSafeApiKit(network);
 
     // this.init();
   }
@@ -94,6 +94,16 @@ class Safe {
 
     return transactions;
   }
+
+  static createSafeApiKit = (network: string) => {
+    return new SafeApiKit({
+      chainId: BigInt(network),
+      txServiceUrl:
+        TRANSACTION_SERVICE_URLS[network] ||
+        HOST_MAP[network]?.replace(/\/v1$/, "") ||
+        undefined,
+    });
+  };
 
   async getPendingTransactions() {
     const nonce = await this.getNonce();
@@ -412,3 +422,5 @@ class Safe {
 export default Safe;
 
 export type BasicSafeInfo = Awaited<ReturnType<Safe["getBasicSafeInfo"]>>;
+
+export { ApiKitSafeMessage as SafeMessage };
