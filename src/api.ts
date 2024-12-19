@@ -47,7 +47,7 @@ export interface SafeTransactionItem {
   signatures: string | null;
 }
 
-const HOST_MAP = {
+export const HOST_MAP = {
   /**
    * eth
    */
@@ -108,6 +108,23 @@ const HOST_MAP = {
    * X Layer
    */
   "196": "https://safe-transaction-xlayer.safe.global/api/v1",
+
+  /**
+   * mantle
+   */
+  "5000": "https://safe-transaction-mantle.safe.global/api/v1",
+  /**
+   * World Chain
+   */
+  "480": "https://safe-transaction-worldchain.safe.global/api/v1",
+  /**
+   * blast
+   */
+  "81457": "https://safe-transaction-blast.safe.global/api/v1",
+  /**
+   * Sonic
+   */
+  "146": "https://safe-transaction-sonic.safe.global/api/v1",
 };
 
 export default class RequestProvider {
