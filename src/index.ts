@@ -8,7 +8,7 @@ import {
   SafeTransaction,
   SafeTransactionDataPartial,
 } from "@safe-global/types-kit";
-import { EthSafeMessage, EthSafeTransaction, hashSafeMessage } from "@safe-global/protocol-kit"
+import { EthSafeMessage, EthSafeTransaction } from "@safe-global/protocol-kit"
 import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
 import SafeApiKit, {
   EIP712TypedData as ApiKitEIP712TypedData,
@@ -16,9 +16,6 @@ import SafeApiKit, {
 } from "@safe-global/api-kit";
 import { TRANSACTION_SERVICE_URLS } from "@safe-global/api-kit/dist/src/utils/config";
 import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
-import { SafeClientResult } from "@safe-global/sdk-starter-kit";
-import { SafeClientTxStatus } from "@safe-global/sdk-starter-kit/dist/src/constants";
-import { createSafeClientResult } from "@safe-global/sdk-starter-kit/dist/src/utils";
 import RequestProvider, { HOST_MAP, SafeInfo } from "./api";
 import {
   estimateGasForTransactionExecution,
@@ -383,15 +380,11 @@ class Safe {
    * @param {EthSafeMessage} safeMessage The message
    * @returns {Promise<SafeClientResult>} The SafeClientResult
    */
-  async addMessage({ safeMessage }: { safeMessage: EthSafeMessage }): Promise<SafeClientResult> {
+  async addMessage({ safeMessage }: { safeMessage: EthSafeMessage }): Promise<void> {
     const safeAddress = this.safeAddress;
-    const threshold = await this.getThreshold();
-    const messageHash = await this.getSafeMessageHash(
-      hashSafeMessage(safeMessage.data)
-    );
 
     try {
-      await this.apiKit.addMessage(safeAddress, {
+      return this.apiKit.addMessage(safeAddress, {
         message: safeMessage.data as string | ApiKitEIP712TypedData,
         signature: safeMessage.encodedSignatures(),
       });
@@ -400,17 +393,6 @@ class Safe {
         "Could not add a new off-chain message to the Safe account"
       );
     }
-
-    const message = await this.apiKit.getMessage(messageHash);
-
-    return createSafeClientResult({
-      safeAddress: this.safeAddress,
-      status:
-        message.confirmations.length === threshold
-          ? SafeClientTxStatus.MESSAGE_CONFIRMED
-          : SafeClientTxStatus.MESSAGE_PENDING_SIGNATURES,
-      messageHash,
-    });
   }
 }
 

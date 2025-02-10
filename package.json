@@ -17,7 +17,6 @@
     "@safe-global/api-kit": "2.5.8",
     "@safe-global/protocol-kit": "5.2.1",
     "@safe-global/safe-deployments": "1.37.28",
-    "@safe-global/sdk-starter-kit": "1.1.2",
     "@safe-global/types-kit": "1.0.2",
     "axios": "0.24.0",
     "ethereumjs-util": "7.1.3",
