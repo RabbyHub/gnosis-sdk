@@ -1,12 +1,10 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import {
-  SafeTransaction,
-  SafeTransactionData,
-} from "@gnosis.pm/safe-core-sdk-types";
-import {
   TransactionOptions,
   TransactionResult,
-} from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
+  SafeTransaction,
+  SafeTransactionData
+} from "@safe-global/types-kit"
 
 export interface GnosisSafeContract {
   getVersion(): Promise<string>;

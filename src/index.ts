@@ -1,29 +1,21 @@
 import { BigNumber } from "@ethersproject/bignumber";
-import {
-  SafeSignature,
-  SafeTransactionDataPartial,
-} from "@gnosis.pm/safe-core-sdk-types";
-import SafeTransaction from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/SafeTransaction";
+import { AxiosAdapter } from "axios";
+import { Contract, ethers, providers } from "ethers";
 import {
   TransactionOptions,
   TransactionResult,
-} from "@gnosis.pm/safe-core-sdk/dist/src/utils/transactions/types";
+  SafeSignature,
+  SafeTransaction,
+  SafeTransactionDataPartial,
+} from "@safe-global/types-kit";
+import { EthSafeMessage, EthSafeTransaction } from "@safe-global/protocol-kit"
+import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
 import SafeApiKit, {
   EIP712TypedData as ApiKitEIP712TypedData,
   SafeMessage as ApiKitSafeMessage,
 } from "@safe-global/api-kit";
 import { TRANSACTION_SERVICE_URLS } from "@safe-global/api-kit/dist/src/utils/config";
-import { hashSafeMessage } from "@safe-global/protocol-kit";
-import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
-import SafeMessage from "@safe-global/protocol-kit/dist/src/utils/messages/SafeMessage";
 import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
-import { SafeClientResult } from "@safe-global/sdk-starter-kit";
-import { SafeClientTxStatus } from "@safe-global/sdk-starter-kit/dist/src/constants";
-import { createSafeClientResult } from "@safe-global/sdk-starter-kit/dist/src/utils";
-import { AxiosAdapter } from "axios";
-import BN from "bignumber.js";
-import { Contract, providers } from "ethers";
-import { toChecksumAddress } from "web3-utils";
 import RequestProvider, { HOST_MAP, SafeInfo } from "./api";
 import {
   estimateGasForTransactionExecution,
@@ -78,7 +70,7 @@ class Safe {
    */
   static getSafeInfo(safeAddress: string, network: string) {
     const request = new RequestProvider(network, Safe.adapter);
-    return request.getSafeInfo(toChecksumAddress(safeAddress));
+    return request.getSafeInfo(ethers.utils.getAddress(safeAddress));
   }
 
   static async getPendingTransactions(
@@ -100,7 +92,7 @@ class Safe {
       chainId: BigInt(network),
       txServiceUrl:
         TRANSACTION_SERVICE_URLS[network] ||
-        HOST_MAP[network]?.replace(/\/v1$/, "") ||
+        HOST_MAP[network] ||
         undefined,
     });
   };
@@ -119,7 +111,7 @@ class Safe {
     address,
     provider,
   }: {
-    address;
+    address: string;
     provider: providers.Web3Provider;
   }): Promise<string> {
     const contract = new Contract(
@@ -201,7 +193,7 @@ class Safe {
       this.network,
       this.version
     );
-    return new SafeTransaction(transaction);
+    return new EthSafeTransaction(transaction);
   }
 
   async getTransactionHash(transaction: SafeTransaction) {
@@ -254,11 +246,11 @@ class Safe {
   async postTransaction(transaction: SafeTransaction, hash: string) {
     const signer = this.provider.getSigner(0);
     const signerAddress = await signer.getAddress();
-    const safeAddress = toChecksumAddress(this.safeAddress);
+    const safeAddress = ethers.utils.getAddress(this.safeAddress);
     await this.request.postTransactions(this.safeAddress, {
       safe: safeAddress,
-      to: toChecksumAddress(transaction.data.to),
-      value: new BN(transaction.data.value).toFixed(),
+      to: ethers.utils.getAddress(transaction.data.to),
+      value: transaction.data.value,
       data: transaction.data.data,
       operation: transaction.data.operation,
       gasToken: transaction.data.gasToken,
@@ -268,7 +260,7 @@ class Safe {
       refundReceiver: transaction.data.refundReceiver,
       nonce: transaction.data.nonce,
       contractTransactionHash: hash,
-      sender: toChecksumAddress(signerAddress),
+      sender: ethers.utils.getAddress(signerAddress),
       signature: transaction.encodedSignatures(),
     });
   }
@@ -373,7 +365,7 @@ class Safe {
     const chainId = BigInt(this.network);
 
     return calculateSafeMessageHash(
-      toChecksumAddress(safeAddress),
+      ethers.utils.getAddress(safeAddress),
       messageHash,
       safeVersion,
       chainId
@@ -385,18 +377,14 @@ class Safe {
    * - If the threshold > 1, remember to confirmMessage() after sendMessage()
    * - If the threshold = 1, then the message is confirmed and valid immediately
    *
-   * @param {SafeMessage} safeMessage The message
+   * @param {EthSafeMessage} safeMessage The message
    * @returns {Promise<SafeClientResult>} The SafeClientResult
    */
-  async addMessage({ safeMessage }: { safeMessage: SafeMessage }) {
+  async addMessage({ safeMessage }: { safeMessage: EthSafeMessage }): Promise<void> {
     const safeAddress = this.safeAddress;
-    const threshold = await this.getThreshold();
-    const messageHash = await this.getSafeMessageHash(
-      hashSafeMessage(safeMessage.data)
-    );
 
     try {
-      await this.apiKit.addMessage(safeAddress, {
+      return this.apiKit.addMessage(safeAddress, {
         message: safeMessage.data as string | ApiKitEIP712TypedData,
         signature: safeMessage.encodedSignatures(),
       });
@@ -405,17 +393,6 @@ class Safe {
         "Could not add a new off-chain message to the Safe account"
       );
     }
-
-    const message = await this.apiKit.getMessage(messageHash);
-
-    return createSafeClientResult({
-      safeAddress: this.safeAddress,
-      status:
-        message.confirmations.length === threshold
-          ? SafeClientTxStatus.MESSAGE_CONFIRMED
-          : SafeClientTxStatus.MESSAGE_PENDING_SIGNATURES,
-      messageHash,
-    });
   }
 }
 

@@ -2,14 +2,14 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { Contract, providers } from "ethers";
 import {
   OperationType,
-  SafeTransactionData,
-  SafeTransactionDataPartial,
   SafeSignature,
   SafeTransaction,
-} from "@gnosis.pm/safe-core-sdk-types";
+  SafeTransactionData,
+  SafeTransactionDataPartial
+} from "@safe-global/types-kit"
+import { EthSafeSignature } from "@safe-global/protocol-kit"
 import { bufferToHex, ecrecover, pubToAddress } from "ethereumjs-util";
 import { ZERO_ADDRESS, SENTINEL_ADDRESS } from "./constants";
-import EthSignSignature from "@gnosis.pm/safe-core-sdk/dist/src/utils/signatures/SafeSignature";
 import semverSatisfies from "semver/functions/satisfies";
 import RequestProvider from "./api";
 import Safe from "./index";
@@ -126,8 +126,8 @@ export async function standardizeSafeTransactionData(
     value: tx.value,
     data: tx.data,
     operation: tx.operation ?? OperationType.Call,
-    baseGas: tx.baseGas ?? 0,
-    gasPrice: tx.gasPrice ?? 0,
+    baseGas: tx.baseGas ?? "0",
+    gasPrice: tx.gasPrice ?? "0",
     gasToken: tx.gasToken || ZERO_ADDRESS,
     refundReceiver: tx.refundReceiver || ZERO_ADDRESS,
     nonce: tx.nonce ?? (await safeContract.nonce()).toNumber(),
@@ -138,7 +138,7 @@ export async function standardizeSafeTransactionData(
     (await request.getSafeTxGas(safeAddress, version, standardizedTxs));
   return {
     ...standardizedTxs,
-    safeTxGas: safeTxGas || 0,
+    safeTxGas: safeTxGas || "0",
   };
 }
 
@@ -151,7 +151,7 @@ export function generatePreValidatedSignature(
     "0000000000000000000000000000000000000000000000000000000000000000" +
     "01";
 
-  return new EthSignSignature(ownerAddress, signature);
+  return new EthSafeSignature(ownerAddress, signature);
 }
 
 export function isTxHashSignedWithPrefix(
@@ -200,13 +200,13 @@ export function adjustVInSignature(signature: string, hasPrefix: boolean) {
 export async function generateSignature(
   provider: providers.Web3Provider,
   hash: string
-): Promise<EthSignSignature> {
+): Promise<EthSafeSignature> {
   const signer = await provider.getSigner(0);
   const signerAddress = await signer.getAddress();
   let signature = await provider.send("personal_sign", [hash, signerAddress]);
   const hasPrefix = isTxHashSignedWithPrefix(hash, signature, signerAddress);
   signature = adjustVInSignature(signature, hasPrefix);
-  return new EthSignSignature(signerAddress, signature);
+  return new EthSafeSignature(signerAddress, signature);
 }
 
 export async function estimateGasForTransactionExecution(
