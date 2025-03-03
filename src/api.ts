@@ -51,7 +51,7 @@ export const HOST_MAP = {
   /**
    * eth
    */
-  "1": "https://safe-transaction-mainnet.safe.global/api",
+  "1": "https://safe-txs-mainnet.rabby.io/api",
   /**
    * polygon
    */
