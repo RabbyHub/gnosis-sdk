@@ -8,7 +8,7 @@ import {
   SafeTransaction,
   SafeTransactionDataPartial,
 } from "@safe-global/types-kit";
-import { EthSafeMessage, EthSafeTransaction } from "@safe-global/protocol-kit"
+import { EthSafeMessage, EthSafeTransaction } from "@safe-global/protocol-kit";
 import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
 import SafeApiKit, {
   EIP712TypedData as ApiKitEIP712TypedData,
@@ -91,9 +91,7 @@ class Safe {
     return new SafeApiKit({
       chainId: BigInt(network),
       txServiceUrl:
-        TRANSACTION_SERVICE_URLS[network] ||
-        HOST_MAP[network] ||
-        undefined,
+        HOST_MAP[network] || TRANSACTION_SERVICE_URLS[network] || undefined,
     });
   };
 
@@ -380,7 +378,11 @@ class Safe {
    * @param {EthSafeMessage} safeMessage The message
    * @returns {Promise<SafeClientResult>} The SafeClientResult
    */
-  async addMessage({ safeMessage }: { safeMessage: EthSafeMessage }): Promise<void> {
+  async addMessage({
+    safeMessage,
+  }: {
+    safeMessage: EthSafeMessage;
+  }): Promise<void> {
     const safeAddress = this.safeAddress;
 
     try {
