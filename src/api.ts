@@ -55,11 +55,11 @@ export const HOST_MAP = {
   /**
    * polygon
    */
-  "137": "https://safe-transaction-polygon.safe.global/api",
+  "137": "https://safe-txs-polygon.rabby.io/api",
   /**
    * bsc
    */
-  "56": "https://safe-transaction-bsc.safe.global/api",
+  "56": "https://safe-txs-bsc.rabby.io/api",
   /**
    * Gnosis Chain
    */
@@ -71,11 +71,11 @@ export const HOST_MAP = {
   /**
    * arbitrum
    */
-  "42161": "https://safe-transaction-arbitrum.safe.global/api",
+  "42161": "https://safe-txs-arb.rabby.io/api",
   /**
    * Optimism
    */
-  "10": "https://safe-transaction-optimism.safe.global/api",
+  "10": "https://safe-txs-op.rabby.io/api",
   /**
    * Aurora
    */
@@ -83,7 +83,7 @@ export const HOST_MAP = {
   /**
    * Base
    */
-  "8453": "https://safe-transaction-base.safe.global/api",
+  "8453": "https://safe-txs-base.rabby.io/api",
   /**
    * Celo
    */

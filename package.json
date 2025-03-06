@@ -1,6 +1,6 @@
 {
   "name": "@rabby-wallet/gnosis-sdk",
-  "version": "1.4.0",
+  "version": "1.4.1-alpha",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
