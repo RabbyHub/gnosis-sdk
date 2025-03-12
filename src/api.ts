@@ -51,15 +51,15 @@ export const HOST_MAP = {
   /**
    * eth
    */
-  "1": "https://safe-txs-mainnet.rabby.io/api",
+  "1": "https://safe-transaction-mainnet.safe.global/api",
   /**
    * polygon
    */
-  "137": "https://safe-txs-polygon.rabby.io/api",
+  "137": "https://safe-transaction-polygon.safe.global/api",
   /**
    * bsc
    */
-  "56": "https://safe-txs-bsc.rabby.io/api",
+  "56": "https://safe-transaction-bsc.safe.global/api",
   /**
    * Gnosis Chain
    */
@@ -71,11 +71,11 @@ export const HOST_MAP = {
   /**
    * arbitrum
    */
-  "42161": "https://safe-txs-arb.rabby.io/api",
+  "42161": "https://safe-transaction-arbitrum.safe.global/api",
   /**
    * Optimism
    */
-  "10": "https://safe-txs-op.rabby.io/api",
+  "10": "https://safe-transaction-optimism.safe.global/api",
   /**
    * Aurora
    */
@@ -83,7 +83,7 @@ export const HOST_MAP = {
   /**
    * Base
    */
-  "8453": "https://safe-txs-base.rabby.io/api",
+  "8453": "https://safe-transaction-base.safe.global/api",
   /**
    * Celo
    */
