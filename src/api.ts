@@ -124,6 +124,10 @@ export const HOST_MAP = {
    * Sonic
    */
   "146": "https://safe-transaction-sonic.safe.global/api",
+  /**
+   * Berachain
+   */
+  "80094": "https://safe-transaction-berachain.safe.global/api"
 };
 
 export default class RequestProvider {
