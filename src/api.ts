@@ -127,7 +127,19 @@ export const HOST_MAP = {
   /**
    * Berachain
    */
-  "80094": "https://safe-transaction-berachain.safe.global/api"
+  "80094": "https://safe-transaction-berachain.safe.global/api",
+  /**
+   * ink
+   */
+  "57073": "https://safe-transaction-ink.safe.global/api",
+  /**
+   * Hemi
+   */
+  "43111": "https://safe-transaction-hemi.safe.global/api",
+  /**
+   * Katana
+   */
+  "747474": "https://safe-transaction-katana.safe.global/api"
 };
 
 export default class RequestProvider {
