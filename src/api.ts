@@ -139,14 +139,22 @@ export const HOST_MAP = {
   /**
    * Katana
    */
-  "747474": "https://safe-transaction-katana.safe.global/api"
+  "747474": "https://safe-transaction-katana.safe.global/api",
 };
 
 export default class RequestProvider {
   host: string;
   request: Axios;
 
-  constructor(networkId: string, adapter?: AxiosAdapter) {
+  constructor({
+    networkId,
+    adapter,
+    apiKey,
+  }: {
+    networkId: string;
+    adapter?: AxiosAdapter;
+    apiKey: string;
+  }) {
     if (!(networkId in HOST_MAP)) {
       throw new Error("Wrong networkId");
     }
@@ -156,6 +164,12 @@ export default class RequestProvider {
     this.request = axios.create({
       baseURL: this.host,
       adapter,
+
+      headers: apiKey
+        ? {
+            Authorization: `Bearer ${apiKey}`,
+          }
+        : undefined,
     });
 
     this.request.interceptors.response.use((response) => {
@@ -168,7 +182,9 @@ export default class RequestProvider {
     nonce: number
   ): Promise<{ results: SafeTransactionItem[] }> {
     return this.request.get(
-      `/v1/safes/${ethers.utils.getAddress(safeAddress)}/multisig-transactions/`,
+      `/v1/safes/${ethers.utils.getAddress(
+        safeAddress
+      )}/multisig-transactions/`,
       {
         params: {
           executed: false,
@@ -186,7 +202,9 @@ export default class RequestProvider {
   }
 
   getSafeInfo(safeAddress: string): Promise<SafeInfo> {
-    return this.request.get(`/v1/safes/${ethers.utils.getAddress(safeAddress)}/`);
+    return this.request.get(
+      `/v1/safes/${ethers.utils.getAddress(safeAddress)}/`
+    );
   }
 
   confirmTransaction(safeTransactionHash: string, data): Promise<void> {

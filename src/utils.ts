@@ -5,9 +5,9 @@ import {
   SafeSignature,
   SafeTransaction,
   SafeTransactionData,
-  SafeTransactionDataPartial
-} from "@safe-global/types-kit"
-import { EthSafeSignature } from "@safe-global/protocol-kit"
+  SafeTransactionDataPartial,
+} from "@safe-global/types-kit";
+import { EthSafeSignature } from "@safe-global/protocol-kit";
 import { bufferToHex, ecrecover, pubToAddress } from "ethereumjs-util";
 import { ZERO_ADDRESS, SENTINEL_ADDRESS } from "./constants";
 import semverSatisfies from "semver/functions/satisfies";
@@ -132,7 +132,11 @@ export async function standardizeSafeTransactionData(
     refundReceiver: tx.refundReceiver || ZERO_ADDRESS,
     nonce: tx.nonce ?? (await safeContract.nonce()).toNumber(),
   };
-  const request = new RequestProvider(network, Safe.adapter);
+  const request = new RequestProvider({
+    networkId: network,
+    adapter: Safe.adapter,
+    apiKey: Safe.apiKey,
+  });
   const safeTxGas =
     tx.safeTxGas ??
     (await request.getSafeTxGas(safeAddress, version, standardizedTxs));

@@ -14,7 +14,7 @@
     "@ethersproject/contracts": "5.5.0",
     "@ethersproject/providers": "5.5.0",
     "@ethersproject/solidity": "5.5.0",
-    "@safe-global/api-kit": "2.5.8",
+    "@safe-global/api-kit": "4.0.0",
     "@safe-global/protocol-kit": "5.2.1",
     "@safe-global/safe-deployments": "1.37.36",
     "@safe-global/types-kit": "1.0.2",
