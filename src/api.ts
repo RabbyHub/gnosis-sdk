@@ -47,6 +47,104 @@ export interface SafeTransactionItem {
   signatures: string | null;
 }
 
+const TRANSACTION_SERVICE_URL = "https://api.safe.global/tx-service";
+
+const networkMap = {
+  /**
+   * eth
+   */
+  1: "eth",
+  /**
+   * Optimism
+   */
+  10: "oeth",
+  /**
+   * bsc
+   */
+  56: "bnb",
+  /**
+   * Gnosis Chain
+   */
+  100: "gno",
+  130: "unichain",
+  /**
+   * polygon
+   */
+  137: "pol",
+  /**
+   * Sonic
+   */
+  146: "sonic",
+  /**
+   * X Layer
+   */
+  196: "okb",
+  232: "lens",
+  /**
+   * zksync era
+   */
+  324: "zksync",
+  /**
+   * World Chain
+   */
+  480: "wc",
+  /**
+   * Polygon zkEVM
+   */
+  1101: "zkevm",
+  /**
+   * mantle
+   */
+  5000: "mantle",
+  /**
+   * Base
+   */
+  8453: "base",
+  10200: "chi",
+  /**
+   * arbitrum
+   */
+  42161: "arb1",
+  /**
+   * Celo
+   */
+  42220: "celo",
+  /**
+   * Hemi
+   */
+  43111: "hemi",
+  /**
+   * avalanche
+   */
+  43114: "avax",
+  /**
+   * ink
+   */
+  57073: "ink",
+  /**
+   * linea
+   */
+  59144: "linea",
+  /**
+   * Berachain
+   */
+  80094: "berachain",
+  84532: "basesep",
+  /**
+   * scroll
+   */
+  534352: "scr",
+  /**
+   * Katana
+   */
+  747474: "katana",
+  11155111: "sep",
+  /**
+   * Aurora
+   */
+  1313161554: "aurora",
+};
+
 export const HOST_MAP = {
   /**
    * eth
@@ -142,6 +240,14 @@ export const HOST_MAP = {
   "747474": "https://safe-transaction-katana.safe.global/api",
 };
 
+export const getTxServiceUrl = (chainId: string) => {
+  const shortName = networkMap[chainId];
+  if (shortName) {
+    return `${TRANSACTION_SERVICE_URL}/${shortName}/api`;
+  }
+  return HOST_MAP[chainId];
+};
+
 export default class RequestProvider {
   host: string;
   request: Axios;
@@ -155,11 +261,12 @@ export default class RequestProvider {
     adapter?: AxiosAdapter;
     apiKey: string;
   }) {
-    if (!(networkId in HOST_MAP)) {
+    const txServiceUrl = getTxServiceUrl(networkId);
+    if (!txServiceUrl) {
       throw new Error("Wrong networkId");
     }
 
-    this.host = HOST_MAP[networkId];
+    this.host = txServiceUrl;
 
     this.request = axios.create({
       baseURL: this.host,

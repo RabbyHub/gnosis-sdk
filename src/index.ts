@@ -14,9 +14,9 @@ import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/uti
 import SafeApiKit, {
   SafeMessage as ApiKitSafeMessage,
 } from "@safe-global/api-kit";
-import { getTransactionServiceUrl } from "@safe-global/api-kit/dist/src/utils/config";
+// import { getTransactionServiceUrl } from "@safe-global/api-kit/dist/src/utils/config";
 import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
-import RequestProvider, { HOST_MAP, SafeInfo } from "./api";
+import RequestProvider, { getTxServiceUrl, SafeInfo } from "./api";
 import {
   estimateGasForTransactionExecution,
   generatePreValidatedSignature,
@@ -103,10 +103,7 @@ class Safe {
   static createSafeApiKit = (network: string) => {
     return new SafeApiKit({
       chainId: BigInt(network),
-      txServiceUrl:
-        HOST_MAP[network] ||
-        getTransactionServiceUrl(BigInt(network)) ||
-        undefined,
+      txServiceUrl: getTxServiceUrl(network) || undefined,
       apiKey: Safe.apiKey,
     });
   };
