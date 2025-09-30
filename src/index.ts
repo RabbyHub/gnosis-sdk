@@ -331,13 +331,13 @@ class Safe {
       }
     }
 
-    const gasLimit = await estimateGasForTransactionExecution(
-      contract,
-      signerAddress,
-      safeTransaction
-    );
+    // const gasLimit = await estimateGasForTransactionExecution(
+    //   contract,
+    //   signerAddress,
+    //   safeTransaction
+    // );
     const executionOptions: TransactionOptions = {
-      gasLimit,
+      gasLimit: 0,
       gasPrice: options?.gasPrice,
       from: signerAddress,
     };
