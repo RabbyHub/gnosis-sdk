@@ -7,16 +7,16 @@ import {
   SafeSignature,
   SafeTransaction,
   SafeTransactionDataPartial,
+  EIP712TypedData as ApiKitEIP712TypedData,
 } from "@safe-global/types-kit";
 import { EthSafeMessage, EthSafeTransaction } from "@safe-global/protocol-kit";
 import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
 import SafeApiKit, {
-  EIP712TypedData as ApiKitEIP712TypedData,
   SafeMessage as ApiKitSafeMessage,
 } from "@safe-global/api-kit";
-import { TRANSACTION_SERVICE_URLS } from "@safe-global/api-kit/dist/src/utils/config";
+// import { getTransactionServiceUrl } from "@safe-global/api-kit/dist/src/utils/config";
 import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
-import RequestProvider, { HOST_MAP, SafeInfo } from "./api";
+import RequestProvider, { getTxServiceUrl, SafeInfo } from "./api";
 import {
   estimateGasForTransactionExecution,
   generatePreValidatedSignature,
@@ -37,6 +37,7 @@ class Safe {
   apiKit: SafeApiKit;
 
   static adapter: AxiosAdapter;
+  static apiKey: string;
 
   constructor(
     safeAddress: string,
@@ -56,7 +57,11 @@ class Safe {
     this.version = version;
     this.safeAddress = safeAddress;
     this.network = network;
-    this.request = new RequestProvider(network, Safe.adapter);
+    this.request = new RequestProvider({
+      networkId: network,
+      adapter: Safe.adapter,
+      apiKey: Safe.apiKey,
+    });
     this.apiKit = Safe.createSafeApiKit(network);
 
     // this.init();
@@ -69,7 +74,11 @@ class Safe {
    * @returns
    */
   static getSafeInfo(safeAddress: string, network: string) {
-    const request = new RequestProvider(network, Safe.adapter);
+    const request = new RequestProvider({
+      networkId: network,
+      adapter: Safe.adapter,
+      apiKey: Safe.apiKey,
+    });
     return request.getSafeInfo(ethers.utils.getAddress(safeAddress));
   }
 
@@ -78,7 +87,11 @@ class Safe {
     network: string,
     nonce: number
   ) {
-    const request = new RequestProvider(network, Safe.adapter);
+    const request = new RequestProvider({
+      networkId: network,
+      adapter: Safe.adapter,
+      apiKey: Safe.apiKey,
+    });
     const transactions = await request.getPendingTransactions(
       safeAddress,
       nonce
@@ -90,8 +103,8 @@ class Safe {
   static createSafeApiKit = (network: string) => {
     return new SafeApiKit({
       chainId: BigInt(network),
-      txServiceUrl:
-        HOST_MAP[network] || TRANSACTION_SERVICE_URLS[network] || undefined,
+      txServiceUrl: getTxServiceUrl(network) || undefined,
+      apiKey: Safe.apiKey,
     });
   };
 
@@ -318,13 +331,13 @@ class Safe {
       }
     }
 
-    const gasLimit = await estimateGasForTransactionExecution(
-      contract,
-      signerAddress,
-      safeTransaction
-    );
+    // const gasLimit = await estimateGasForTransactionExecution(
+    //   contract,
+    //   signerAddress,
+    //   safeTransaction
+    // );
     const executionOptions: TransactionOptions = {
-      gasLimit,
+      gasLimit: 0,
       gasPrice: options?.gasPrice,
       from: signerAddress,
     };
