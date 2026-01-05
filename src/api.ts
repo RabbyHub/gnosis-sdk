@@ -51,145 +51,198 @@ const TRANSACTION_SERVICE_URL = "https://api.safe.global/tx-service";
 
 type NetworkShortName = {
   shortName: string;
-  chainId: bigint;
+  chainId: string;
   enum?: string;
 };
 
 const networks: NetworkShortName[] = [
   {
-    chainId: 1n,
+    chainId: "1",
     shortName: "eth",
     enum: "ETH",
   },
   {
-    chainId: 10n,
+    chainId: "10",
     shortName: "oeth",
     enum: "OP",
   },
   {
-    chainId: 50n,
+    chainId: "50",
     shortName: "xdc",
   },
   {
-    chainId: 56n,
+    chainId: "56",
     shortName: "bnb",
     enum: "BSC",
   },
   {
-    chainId: 100n,
+    chainId: "100",
     shortName: "gno",
     enum: "GNOSIS",
   },
   {
-    chainId: 130n,
+    chainId: "130",
     shortName: "unichain",
+    enum: "UNI",
   },
   {
-    chainId: 137n,
+    chainId: "137",
     shortName: "pol",
     enum: "POLYGON",
   },
-  { chainId: 143n, shortName: "monad" },
   {
-    chainId: 146n,
+    chainId: "143",
+    shortName: "monad",
+    enum: "MONAD",
+  },
+  {
+    chainId: "146",
     shortName: "sonic",
     enum: "SONIC",
   },
   {
-    chainId: 196n,
+    chainId: "196",
     shortName: "okb",
     enum: "XLAYER",
   },
-  { chainId: 204n, shortName: "opbnb" },
-  { chainId: 232n, shortName: "lens" },
   {
-    chainId: 324n,
+    chainId: "204",
+    shortName: "opbnb",
+    enum: "OPBNB",
+  },
+  {
+    chainId: "232",
+    shortName: "lens",
+    enum: "LENS",
+  },
+  {
+    chainId: "324",
     shortName: "zksync",
     enum: "ERA",
   },
   {
-    chainId: 480n,
+    chainId: "480",
     shortName: "wc",
     enum: "WORLD",
   },
-  { chainId: 988n, shortName: "stable" },
-  { chainId: 999n, shortName: "hyper" },
-  { chainId: 1101n, shortName: "zkevm" },
-  { chainId: 3338n, shortName: "peaq" },
-  { chainId: 3637n, shortName: "btc" },
   {
-    chainId: 5000n,
+    chainId: "988",
+    shortName: "stable",
+    enum: "STABLE",
+  },
+  {
+    chainId: "999",
+    shortName: "hyper",
+    enum: "HYPER",
+  },
+  {
+    chainId: "1101",
+    shortName: "zkevm",
+  },
+  {
+    chainId: "3338",
+    shortName: "peaq",
+  },
+  {
+    chainId: "3637",
+    shortName: "btc",
+    enum: "BOTANIX",
+  },
+  {
+    chainId: "5000",
     shortName: "mantle",
     enum: "MANTLE",
   },
   {
-    chainId: 8453n,
+    chainId: "8453",
     shortName: "base",
     enum: "BASE",
   },
-  { chainId: 9745n, shortName: "plasma" },
-  { chainId: 10143n, shortName: "monad-testnet" },
-  { chainId: 10200n, shortName: "chi" },
-  { chainId: 16661n, shortName: "0g" },
   {
-    chainId: 42161n,
+    chainId: "9745",
+    shortName: "plasma",
+    enum: "PLASMA",
+  },
+  {
+    chainId: "10143",
+    shortName: "monad-testnet",
+  },
+  {
+    chainId: "10200",
+    shortName: "chi",
+  },
+  {
+    chainId: "16661",
+    shortName: "0g",
+    enum: "G0",
+  },
+  {
+    chainId: "42161",
     shortName: "arb1",
     enum: "ARBITRUM",
   },
   {
-    chainId: 42220n,
+    chainId: "42220",
     shortName: "celo",
     enum: "CELO",
   },
   {
-    chainId: 43111n,
+    chainId: "43111",
     shortName: "hemi",
     enum: "HEMI",
   },
   {
-    chainId: 43114n,
+    chainId: "43114",
     shortName: "avax",
     enum: "AVAX",
   },
   {
-    chainId: 57073n,
+    chainId: "57073",
     shortName: "ink",
     enum: "INK",
   },
   {
-    chainId: 59144n,
+    chainId: "59144",
     shortName: "linea",
     enum: "LINEA",
   },
   {
-    chainId: 80069n,
+    chainId: "80069",
     shortName: "bep",
   },
   {
-    chainId: 80094n,
+    chainId: "80094",
     shortName: "berachain",
     enum: "BERA",
   },
-  { chainId: 81224n, shortName: "codex" },
-  { chainId: 84532n, shortName: "basesep" },
   {
-    chainId: 534352n,
+    chainId: "81224",
+    shortName: "codex",
+  },
+  {
+    chainId: "84532",
+    shortName: "basesep",
+  },
+  {
+    chainId: "534352",
     shortName: "scr",
     enum: "SCRL",
   },
   {
-    chainId: 747474n,
+    chainId: "747474",
     shortName: "katana",
     enum: "KATANA",
   },
-  { chainId: 11155111n, shortName: "sep" },
   {
-    chainId: 1313161554n,
+    chainId: "11155111",
+    shortName: "sep",
+  },
+  {
+    chainId: "1313161554",
     shortName: "aurora",
     enum: "AURORA",
   },
 ];
-
 export const GNOSIS_SUPPORT_CHAINS = networks
   .map((item) => item.enum)
   .filter(Boolean)
@@ -197,7 +250,7 @@ export const GNOSIS_SUPPORT_CHAINS = networks
 
 const networkMap = networks.reduce<Record<string, string>>(
   (acc, { chainId, shortName }) => {
-    acc[chainId.toString()] = shortName;
+    acc[chainId] = shortName;
     return acc;
   },
   {}
