@@ -49,101 +49,159 @@ export interface SafeTransactionItem {
 
 const TRANSACTION_SERVICE_URL = "https://api.safe.global/tx-service";
 
-const networkMap = {
-  /**
-   * eth
-   */
-  1: "eth",
-  /**
-   * Optimism
-   */
-  10: "oeth",
-  /**
-   * bsc
-   */
-  56: "bnb",
-  /**
-   * Gnosis Chain
-   */
-  100: "gno",
-  130: "unichain",
-  /**
-   * polygon
-   */
-  137: "pol",
-  /**
-   * Sonic
-   */
-  146: "sonic",
-  /**
-   * X Layer
-   */
-  196: "okb",
-  232: "lens",
-  /**
-   * zksync era
-   */
-  324: "zksync",
-  /**
-   * World Chain
-   */
-  480: "wc",
-  /**
-   * Polygon zkEVM
-   */
-  1101: "zkevm",
-  /**
-   * mantle
-   */
-  5000: "mantle",
-  /**
-   * Base
-   */
-  8453: "base",
-  10200: "chi",
-  /**
-   * arbitrum
-   */
-  42161: "arb1",
-  /**
-   * Celo
-   */
-  42220: "celo",
-  /**
-   * Hemi
-   */
-  43111: "hemi",
-  /**
-   * avalanche
-   */
-  43114: "avax",
-  /**
-   * ink
-   */
-  57073: "ink",
-  /**
-   * linea
-   */
-  59144: "linea",
-  /**
-   * Berachain
-   */
-  80094: "berachain",
-  84532: "basesep",
-  /**
-   * scroll
-   */
-  534352: "scr",
-  /**
-   * Katana
-   */
-  747474: "katana",
-  11155111: "sep",
-  /**
-   * Aurora
-   */
-  1313161554: "aurora",
+type NetworkShortName = {
+  shortName: string;
+  chainId: bigint;
+  enum?: string;
 };
+
+const networks: NetworkShortName[] = [
+  {
+    chainId: 1n,
+    shortName: "eth",
+    enum: "ETH",
+  },
+  {
+    chainId: 10n,
+    shortName: "oeth",
+    enum: "OP",
+  },
+  {
+    chainId: 50n,
+    shortName: "xdc",
+  },
+  {
+    chainId: 56n,
+    shortName: "bnb",
+    enum: "BSC",
+  },
+  {
+    chainId: 100n,
+    shortName: "gno",
+    enum: "GNOSIS",
+  },
+  {
+    chainId: 130n,
+    shortName: "unichain",
+  },
+  {
+    chainId: 137n,
+    shortName: "pol",
+    enum: "POLYGON",
+  },
+  { chainId: 143n, shortName: "monad" },
+  {
+    chainId: 146n,
+    shortName: "sonic",
+    enum: "SONIC",
+  },
+  {
+    chainId: 196n,
+    shortName: "okb",
+    enum: "XLAYER",
+  },
+  { chainId: 204n, shortName: "opbnb" },
+  { chainId: 232n, shortName: "lens" },
+  {
+    chainId: 324n,
+    shortName: "zksync",
+    enum: "ERA",
+  },
+  {
+    chainId: 480n,
+    shortName: "wc",
+    enum: "WORLD",
+  },
+  { chainId: 988n, shortName: "stable" },
+  { chainId: 999n, shortName: "hyper" },
+  { chainId: 1101n, shortName: "zkevm" },
+  { chainId: 3338n, shortName: "peaq" },
+  { chainId: 3637n, shortName: "btc" },
+  {
+    chainId: 5000n,
+    shortName: "mantle",
+    enum: "MANTLE",
+  },
+  {
+    chainId: 8453n,
+    shortName: "base",
+    enum: "BASE",
+  },
+  { chainId: 9745n, shortName: "plasma" },
+  { chainId: 10143n, shortName: "monad-testnet" },
+  { chainId: 10200n, shortName: "chi" },
+  { chainId: 16661n, shortName: "0g" },
+  {
+    chainId: 42161n,
+    shortName: "arb1",
+    enum: "ARBITRUM",
+  },
+  {
+    chainId: 42220n,
+    shortName: "celo",
+    enum: "CELO",
+  },
+  {
+    chainId: 43111n,
+    shortName: "hemi",
+    enum: "HEMI",
+  },
+  {
+    chainId: 43114n,
+    shortName: "avax",
+    enum: "AVAX",
+  },
+  {
+    chainId: 57073n,
+    shortName: "ink",
+    enum: "INK",
+  },
+  {
+    chainId: 59144n,
+    shortName: "linea",
+    enum: "LINEA",
+  },
+  {
+    chainId: 80069n,
+    shortName: "bep",
+  },
+  {
+    chainId: 80094n,
+    shortName: "berachain",
+    enum: "BERA",
+  },
+  { chainId: 81224n, shortName: "codex" },
+  { chainId: 84532n, shortName: "basesep" },
+  {
+    chainId: 534352n,
+    shortName: "scr",
+    enum: "SCRL",
+  },
+  {
+    chainId: 747474n,
+    shortName: "katana",
+    enum: "KATANA",
+  },
+  { chainId: 11155111n, shortName: "sep" },
+  {
+    chainId: 1313161554n,
+    shortName: "aurora",
+    enum: "AURORA",
+  },
+];
+
+export const GNOSIS_SUPPORT_CHAINS = networks
+  .map((item) => item.enum)
+  .filter(Boolean)
+  .concat(["BLAST"]);
+
+const networkMap = networks.reduce<Record<string, string>>(
+  (acc, { chainId, shortName }) => {
+    acc[chainId.toString()] = shortName;
+    return acc;
+  },
+  {}
+);
 
 export const HOST_MAP = {
   /**
