@@ -55,6 +55,7 @@ type NetworkShortName = {
   enum?: string;
 };
 
+// https://github.com/safe-global/safe-core-sdk/blob/main/packages/api-kit/src/utils/config.ts
 const networks: NetworkShortName[] = [
   {
     chainId: "1",
