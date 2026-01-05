@@ -246,7 +246,7 @@ const networks: NetworkShortName[] = [
 ];
 export const GNOSIS_SUPPORT_CHAINS = networks
   .map((item) => item.enum)
-  .filter(Boolean)
+  .filter((e): e is string => Boolean(e))
   .concat(["BLAST"]);
 
 const networkMap = networks.reduce<Record<string, string>>(
