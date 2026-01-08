@@ -49,101 +49,213 @@ export interface SafeTransactionItem {
 
 const TRANSACTION_SERVICE_URL = "https://api.safe.global/tx-service";
 
-const networkMap = {
-  /**
-   * eth
-   */
-  1: "eth",
-  /**
-   * Optimism
-   */
-  10: "oeth",
-  /**
-   * bsc
-   */
-  56: "bnb",
-  /**
-   * Gnosis Chain
-   */
-  100: "gno",
-  130: "unichain",
-  /**
-   * polygon
-   */
-  137: "pol",
-  /**
-   * Sonic
-   */
-  146: "sonic",
-  /**
-   * X Layer
-   */
-  196: "okb",
-  232: "lens",
-  /**
-   * zksync era
-   */
-  324: "zksync",
-  /**
-   * World Chain
-   */
-  480: "wc",
-  /**
-   * Polygon zkEVM
-   */
-  1101: "zkevm",
-  /**
-   * mantle
-   */
-  5000: "mantle",
-  /**
-   * Base
-   */
-  8453: "base",
-  10200: "chi",
-  /**
-   * arbitrum
-   */
-  42161: "arb1",
-  /**
-   * Celo
-   */
-  42220: "celo",
-  /**
-   * Hemi
-   */
-  43111: "hemi",
-  /**
-   * avalanche
-   */
-  43114: "avax",
-  /**
-   * ink
-   */
-  57073: "ink",
-  /**
-   * linea
-   */
-  59144: "linea",
-  /**
-   * Berachain
-   */
-  80094: "berachain",
-  84532: "basesep",
-  /**
-   * scroll
-   */
-  534352: "scr",
-  /**
-   * Katana
-   */
-  747474: "katana",
-  11155111: "sep",
-  /**
-   * Aurora
-   */
-  1313161554: "aurora",
+type NetworkShortName = {
+  shortName: string;
+  chainId: string;
+  enum?: string;
 };
+
+// https://github.com/safe-global/safe-core-sdk/blob/main/packages/api-kit/src/utils/config.ts
+const networks: NetworkShortName[] = [
+  {
+    chainId: "1",
+    shortName: "eth",
+    enum: "ETH",
+  },
+  {
+    chainId: "10",
+    shortName: "oeth",
+    enum: "OP",
+  },
+  {
+    chainId: "50",
+    shortName: "xdc",
+  },
+  {
+    chainId: "56",
+    shortName: "bnb",
+    enum: "BSC",
+  },
+  {
+    chainId: "100",
+    shortName: "gno",
+    enum: "GNOSIS",
+  },
+  {
+    chainId: "130",
+    shortName: "unichain",
+    enum: "UNI",
+  },
+  {
+    chainId: "137",
+    shortName: "pol",
+    enum: "POLYGON",
+  },
+  {
+    chainId: "143",
+    shortName: "monad",
+    enum: "MONAD",
+  },
+  {
+    chainId: "146",
+    shortName: "sonic",
+    enum: "SONIC",
+  },
+  {
+    chainId: "196",
+    shortName: "okb",
+    enum: "XLAYER",
+  },
+  {
+    chainId: "204",
+    shortName: "opbnb",
+    enum: "OPBNB",
+  },
+  {
+    chainId: "232",
+    shortName: "lens",
+    enum: "LENS",
+  },
+  {
+    chainId: "324",
+    shortName: "zksync",
+    enum: "ERA",
+  },
+  {
+    chainId: "480",
+    shortName: "wc",
+    enum: "WORLD",
+  },
+  {
+    chainId: "988",
+    shortName: "stable",
+    enum: "STABLE",
+  },
+  {
+    chainId: "999",
+    shortName: "hyper",
+    enum: "HYPER",
+  },
+  {
+    chainId: "1101",
+    shortName: "zkevm",
+  },
+  {
+    chainId: "3338",
+    shortName: "peaq",
+  },
+  {
+    chainId: "3637",
+    shortName: "btc",
+    enum: "BOTANIX",
+  },
+  {
+    chainId: "5000",
+    shortName: "mantle",
+    enum: "MANTLE",
+  },
+  {
+    chainId: "8453",
+    shortName: "base",
+    enum: "BASE",
+  },
+  {
+    chainId: "9745",
+    shortName: "plasma",
+    enum: "PLASMA",
+  },
+  {
+    chainId: "10143",
+    shortName: "monad-testnet",
+  },
+  {
+    chainId: "10200",
+    shortName: "chi",
+  },
+  {
+    chainId: "16661",
+    shortName: "0g",
+    enum: "G0",
+  },
+  {
+    chainId: "42161",
+    shortName: "arb1",
+    enum: "ARBITRUM",
+  },
+  {
+    chainId: "42220",
+    shortName: "celo",
+    enum: "CELO",
+  },
+  {
+    chainId: "43111",
+    shortName: "hemi",
+    enum: "HEMI",
+  },
+  {
+    chainId: "43114",
+    shortName: "avax",
+    enum: "AVAX",
+  },
+  {
+    chainId: "57073",
+    shortName: "ink",
+    enum: "INK",
+  },
+  {
+    chainId: "59144",
+    shortName: "linea",
+    enum: "LINEA",
+  },
+  {
+    chainId: "80069",
+    shortName: "bep",
+  },
+  {
+    chainId: "80094",
+    shortName: "berachain",
+    enum: "BERA",
+  },
+  {
+    chainId: "81224",
+    shortName: "codex",
+  },
+  {
+    chainId: "84532",
+    shortName: "basesep",
+  },
+  {
+    chainId: "534352",
+    shortName: "scr",
+    enum: "SCRL",
+  },
+  {
+    chainId: "747474",
+    shortName: "katana",
+    enum: "KATANA",
+  },
+  {
+    chainId: "11155111",
+    shortName: "sep",
+  },
+  {
+    chainId: "1313161554",
+    shortName: "aurora",
+    enum: "AURORA",
+  },
+];
+export const GNOSIS_SUPPORT_CHAINS = networks
+  .map((item) => item.enum)
+  .filter((e): e is string => Boolean(e))
+  .concat(["BLAST"]);
+
+const networkMap = networks.reduce<Record<string, string>>(
+  (acc, { chainId, shortName }) => {
+    acc[chainId] = shortName;
+    return acc;
+  },
+  {}
+);
 
 export const HOST_MAP = {
   /**
