@@ -279,11 +279,9 @@ export default class RequestProvider {
   constructor({
     networkId,
     adapter,
-    apiKey,
   }: {
     networkId: string;
     adapter?: AxiosAdapter;
-    apiKey: string;
   }) {
     const txServiceUrl = getTxServiceUrl(networkId);
     if (!txServiceUrl) {
@@ -295,12 +293,6 @@ export default class RequestProvider {
     this.request = axios.create({
       baseURL: this.host,
       adapter,
-
-      headers: apiKey
-        ? {
-            Authorization: `Bearer ${apiKey}`,
-          }
-        : undefined,
     });
 
     this.request.interceptors.response.use((response) => {

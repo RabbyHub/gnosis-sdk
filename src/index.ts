@@ -37,13 +37,12 @@ class Safe {
   apiKit: SafeApiKit;
 
   static adapter: AxiosAdapter;
-  static apiKey: string;
 
   constructor(
     safeAddress: string,
     version: string,
     provider: providers.Web3Provider,
-    network = "1"
+    network = "1",
   ) {
     const contract = getSafeSingletonDeployment({
       version,
@@ -60,7 +59,6 @@ class Safe {
     this.request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
-      apiKey: Safe.apiKey,
     });
     this.apiKit = Safe.createSafeApiKit(network);
 
@@ -77,7 +75,6 @@ class Safe {
     const request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
-      apiKey: Safe.apiKey,
     });
     return request.getSafeInfo(ethers.utils.getAddress(safeAddress));
   }
@@ -85,16 +82,15 @@ class Safe {
   static async getPendingTransactions(
     safeAddress: string,
     network: string,
-    nonce: number
+    nonce: number,
   ) {
     const request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
-      apiKey: Safe.apiKey,
     });
     const transactions = await request.getPendingTransactions(
       safeAddress,
-      nonce
+      nonce,
     );
 
     return transactions;
@@ -104,7 +100,6 @@ class Safe {
     return new SafeApiKit({
       chainId: BigInt(network),
       txServiceUrl: getTxServiceUrl(network) || undefined,
-      apiKey: Safe.apiKey,
     });
   };
 
@@ -112,7 +107,7 @@ class Safe {
     const nonce = await this.getNonce();
     const transactions = await this.request.getPendingTransactions(
       this.safeAddress,
-      nonce
+      nonce,
     );
 
     return transactions;
@@ -144,7 +139,7 @@ class Safe {
           type: "function",
         },
       ],
-      provider
+      provider,
     );
 
     const version = await contract.VERSION();
@@ -157,7 +152,7 @@ class Safe {
     this.safeInfo = safeInfo;
     if (this.version !== safeInfo.version) {
       throw new Error(
-        `Current version ${this.version} not matched address version ${safeInfo.version}`
+        `Current version ${this.version} not matched address version ${safeInfo.version}`,
       );
     }
     this.version = safeInfo.version;
@@ -202,7 +197,7 @@ class Safe {
       this.provider,
       data,
       this.network,
-      this.version
+      this.version,
     );
     return new EthSafeTransaction(transaction);
   }
@@ -219,7 +214,7 @@ class Safe {
       transactionData.gasPrice,
       transactionData.gasToken,
       transactionData.refundReceiver,
-      transactionData.nonce
+      transactionData.nonce,
     );
   }
 
@@ -228,7 +223,7 @@ class Safe {
     const signer = await this.provider.getSigner(0);
     const signerAddress = await signer.getAddress();
     const addressIsOwner = owners.find(
-      (owner: string) => signerAddress && sameString(owner, signerAddress)
+      (owner: string) => signerAddress && sameString(owner, signerAddress),
     );
     if (!addressIsOwner) {
       throw new Error("Transactions can only be signed by Safe owners");
@@ -294,7 +289,7 @@ class Safe {
 
   async executeTransaction(
     safeTransaction: SafeTransaction,
-    options?: TransactionOptions
+    options?: TransactionOptions,
   ): Promise<TransactionResult> {
     const txHash = await this.getTransactionHash(safeTransaction);
     const ownersWhoApprovedTx = await this.getOwnersWhoApprovedTx(txHash);
@@ -307,7 +302,7 @@ class Safe {
     const signerAddress = await signer.getAddress();
     if (owners.includes(signerAddress)) {
       safeTransaction.addSignature(
-        generatePreValidatedSignature(signerAddress)
+        generatePreValidatedSignature(signerAddress),
       );
     }
 
@@ -319,7 +314,7 @@ class Safe {
           signaturesMissing > 1 ? "are" : "is"
         } ${signaturesMissing} signature${
           signaturesMissing > 1 ? "s" : ""
-        } missing`
+        } missing`,
       );
     }
 
@@ -353,7 +348,7 @@ class Safe {
       safeTransaction.data.gasToken,
       safeTransaction.data.refundReceiver,
       safeTransaction.encodedSignatures(),
-      executionOptions
+      executionOptions,
     );
 
     return txResponse;
@@ -379,7 +374,7 @@ class Safe {
       ethers.utils.getAddress(safeAddress),
       messageHash,
       safeVersion,
-      chainId
+      chainId,
     );
   };
 
@@ -405,7 +400,7 @@ class Safe {
       });
     } catch (error) {
       throw new Error(
-        "Could not add a new off-chain message to the Safe account"
+        "Could not add a new off-chain message to the Safe account",
       );
     }
   }

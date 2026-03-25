@@ -135,7 +135,6 @@ export async function standardizeSafeTransactionData(
   const request = new RequestProvider({
     networkId: network,
     adapter: Safe.adapter,
-    apiKey: Safe.apiKey,
   });
   const safeTxGas =
     tx.safeTxGas ??
