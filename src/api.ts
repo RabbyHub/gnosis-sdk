@@ -91,6 +91,15 @@ export type SafeOpenApiService = {
       safeAppId?: number;
     };
   }) => Promise<void>;
+  getSafeMessage?: (params: {
+    txServiceUrl: string;
+    messageHash: string;
+  }) => Promise<any>;
+  addSafeMessageSignature?: (params: {
+    txServiceUrl: string;
+    messageHash: string;
+    signature: string;
+  }) => Promise<void>;
 };
 
 type NetworkShortName = {
@@ -509,5 +518,33 @@ export default class RequestProvider {
     }
 
     return this.request.post(`/v1/safes/${checksumAddress}/messages/`, data);
+  }
+
+  getMessage(messageHash: string): Promise<any> {
+    if (this.shouldUseOpenapiService && this.openapiService?.getSafeMessage) {
+      return this.openapiService.getSafeMessage({
+        txServiceUrl: this.prefix,
+        messageHash,
+      });
+    }
+
+    return this.request.get(`/v1/messages/${messageHash}/`);
+  }
+
+  addMessageSignature(messageHash: string, signature: string): Promise<void> {
+    if (
+      this.shouldUseOpenapiService &&
+      this.openapiService?.addSafeMessageSignature
+    ) {
+      return this.openapiService.addSafeMessageSignature({
+        txServiceUrl: this.prefix,
+        messageHash,
+        signature,
+      });
+    }
+
+    return this.request.post(`/v1/messages/${messageHash}/signatures/`, {
+      signature,
+    });
   }
 }

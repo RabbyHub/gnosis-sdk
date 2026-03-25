@@ -105,6 +105,15 @@ class Safe {
     return transactions;
   }
 
+  static async getMessage(messageHash: string, network: string) {
+    const request = new RequestProvider({
+      networkId: network,
+      adapter: Safe.adapter,
+      openapiService: Safe.openapiService,
+    });
+    return request.getMessage(messageHash);
+  }
+
   static createSafeApiKit = (network: string) => {
     return new SafeApiKit({
       chainId: BigInt(network),
@@ -421,6 +430,24 @@ class Safe {
       return this.request.getMessages(safeAddress, options);
     } catch (error) {
       throw new Error("Could not get off-chain messages of the Safe account");
+    }
+  }
+
+  async getMessage(messageHash: string) {
+    try {
+      return this.request.getMessage(messageHash);
+    } catch (error) {
+      throw new Error("Could not get off-chain message of the Safe account");
+    }
+  }
+
+  async addMessageSignature(messageHash: string, signature: string) {
+    try {
+      return this.request.addMessageSignature(messageHash, signature);
+    } catch (error) {
+      throw new Error(
+        "Could not add an off-chain message signature to the Safe account",
+      );
     }
   }
 }
