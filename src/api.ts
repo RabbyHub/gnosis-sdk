@@ -47,7 +47,7 @@ export interface SafeTransactionItem {
   signatures: string | null;
 }
 
-const TRANSACTION_SERVICE_URL = "https://api.safe.global/tx-service";
+const TRANSACTION_SERVICE_URL = "https://api.rabby.io/v1/safe-tx-service";
 
 type NetworkShortName = {
   shortName: string;
@@ -259,97 +259,9 @@ const networkMap = networks.reduce<Record<string, string>>(
 
 export const HOST_MAP = {
   /**
-   * eth
-   */
-  "1": "https://safe-transaction-mainnet.safe.global/api",
-  /**
-   * polygon
-   */
-  "137": "https://safe-transaction-polygon.safe.global/api",
-  /**
-   * bsc
-   */
-  "56": "https://safe-transaction-bsc.safe.global/api",
-  /**
-   * Gnosis Chain
-   */
-  "100": "https://safe-transaction-gnosis-chain.safe.global/api",
-  /**
-   * avalanche
-   */
-  "43114": "https://safe-transaction-avalanche.safe.global/api",
-  /**
-   * arbitrum
-   */
-  "42161": "https://safe-transaction-arbitrum.safe.global/api",
-  /**
-   * Optimism
-   */
-  "10": "https://safe-transaction-optimism.safe.global/api",
-  /**
-   * Aurora
-   */
-  "1313161554": "https://safe-transaction-aurora.safe.global/api",
-  /**
-   * Base
-   */
-  "8453": "https://safe-transaction-base.safe.global/api",
-  /**
-   * Celo
-   */
-  "42220": "https://safe-transaction-celo.safe.global/api",
-  /**
-   * Polygon zkEVM
-   */
-  "1101": "https://safe-transaction-zkevm.safe.global/api",
-  /**
-   * zksync era
-   */
-  "324": "https://safe-transaction-zksync.safe.global/api",
-  /**
-   * scroll
-   */
-  "534352": "https://safe-transaction-scroll.safe.global/api",
-  /**
-   * linea
-   */
-  "59144": "https://safe-transaction-linea.safe.global/api",
-  /**
-   * X Layer
-   */
-  "196": "https://safe-transaction-xlayer.safe.global/api",
-  /**
-   * mantle
-   */
-  "5000": "https://safe-transaction-mantle.safe.global/api",
-  /**
-   * World Chain
-   */
-  "480": "https://safe-transaction-worldchain.safe.global/api",
-  /**
    * blast
    */
   "81457": "https://safe-transaction-blast.safe.global/api",
-  /**
-   * Sonic
-   */
-  "146": "https://safe-transaction-sonic.safe.global/api",
-  /**
-   * Berachain
-   */
-  "80094": "https://safe-transaction-berachain.safe.global/api",
-  /**
-   * ink
-   */
-  "57073": "https://safe-transaction-ink.safe.global/api",
-  /**
-   * Hemi
-   */
-  "43111": "https://safe-transaction-hemi.safe.global/api",
-  /**
-   * Katana
-   */
-  "747474": "https://safe-transaction-katana.safe.global/api",
 };
 
 export const getTxServiceUrl = (chainId: string) => {
@@ -367,11 +279,9 @@ export default class RequestProvider {
   constructor({
     networkId,
     adapter,
-    apiKey,
   }: {
     networkId: string;
     adapter?: AxiosAdapter;
-    apiKey: string;
   }) {
     const txServiceUrl = getTxServiceUrl(networkId);
     if (!txServiceUrl) {
@@ -383,12 +293,6 @@ export default class RequestProvider {
     this.request = axios.create({
       baseURL: this.host,
       adapter,
-
-      headers: apiKey
-        ? {
-            Authorization: `Bearer ${apiKey}`,
-          }
-        : undefined,
     });
 
     this.request.interceptors.response.use((response) => {
