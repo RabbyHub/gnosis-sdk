@@ -287,7 +287,7 @@ const networkMap = networks.reduce<Record<string, string>>(
   {}
 );
 
-export const HOST_MAP = {
+export const HOST_MAP: Record<string, string> = {
   /**
    * blast
    */
@@ -363,7 +363,7 @@ export default class RequestProvider {
     );
   }
 
-  postTransactions(safeAddres: string, data): Promise<void> {
+  postTransactions(safeAddres: string, data: Record<string, any>): Promise<void> {
     const checksumAddress = ethers.utils.getAddress(safeAddres);
     if (
       this.shouldUseOpenapiService &&
@@ -396,7 +396,10 @@ export default class RequestProvider {
     );
   }
 
-  confirmTransaction(safeTransactionHash: string, data): Promise<void> {
+  confirmTransaction(
+    safeTransactionHash: string,
+    data: Record<string, any>
+  ): Promise<void> {
     if (
       this.shouldUseOpenapiService &&
       this.openapiService?.confirmSafeTransaction

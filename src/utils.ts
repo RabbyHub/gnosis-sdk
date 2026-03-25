@@ -142,7 +142,7 @@ export async function standardizeSafeTransactionData(
     (await request.getSafeTxGas(safeAddress, version, standardizedTxs));
   return {
     ...standardizedTxs,
-    safeTxGas: safeTxGas || "0",
+    safeTxGas: `${safeTxGas || "0"}`,
   };
 }
 
