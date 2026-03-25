@@ -121,13 +121,13 @@ export async function standardizeSafeTransactionData(
   network: string,
   version: string
 ): Promise<SafeTransactionData> {
-  const standardizedTxs = {
+  const standardizedTxs: Omit<SafeTransactionData, "safeTxGas"> = {
     to: tx.to,
-    value: tx.value,
-    data: tx.data,
+    value: `${tx.value ?? "0"}`,
+    data: tx.data || "0x",
     operation: tx.operation ?? OperationType.Call,
-    baseGas: tx.baseGas ?? "0",
-    gasPrice: tx.gasPrice ?? "0",
+    baseGas: `${tx.baseGas ?? "0"}`,
+    gasPrice: `${tx.gasPrice ?? "0"}`,
     gasToken: tx.gasToken || ZERO_ADDRESS,
     refundReceiver: tx.refundReceiver || ZERO_ADDRESS,
     nonce: tx.nonce ?? (await safeContract.nonce()).toNumber(),
