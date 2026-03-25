@@ -16,7 +16,11 @@ import SafeApiKit, {
 } from "@safe-global/api-kit";
 // import { getTransactionServiceUrl } from "@safe-global/api-kit/dist/src/utils/config";
 import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
-import RequestProvider, { getTxServiceUrl, SafeInfo } from "./api";
+import RequestProvider, {
+  getTxServiceUrl,
+  SafeInfo,
+  SafeOpenApiService,
+} from "./api";
 import {
   estimateGasForTransactionExecution,
   generatePreValidatedSignature,
@@ -37,6 +41,7 @@ class Safe {
   apiKit: SafeApiKit;
 
   static adapter: AxiosAdapter;
+  static openapiService?: SafeOpenApiService;
 
   constructor(
     safeAddress: string,
@@ -59,6 +64,7 @@ class Safe {
     this.request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
+      openapiService: Safe.openapiService,
     });
     this.apiKit = Safe.createSafeApiKit(network);
 
@@ -75,6 +81,7 @@ class Safe {
     const request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
+      openapiService: Safe.openapiService,
     });
     return request.getSafeInfo(ethers.utils.getAddress(safeAddress));
   }
@@ -87,6 +94,7 @@ class Safe {
     const request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
+      openapiService: Safe.openapiService,
     });
     const transactions = await request.getPendingTransactions(
       safeAddress,
