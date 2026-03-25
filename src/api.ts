@@ -77,6 +77,20 @@ export type SafeOpenApiService = {
       operation?: number;
     };
   }) => Promise<string | undefined>;
+  getSafeMessages?: (params: {
+    txServiceUrl: string;
+    safeAddress: string;
+    options?: Record<string, any>;
+  }) => Promise<{ results: any[] }>;
+  addSafeMessage?: (params: {
+    txServiceUrl: string;
+    safeAddress: string;
+    data: {
+      message: string | Record<string, any>;
+      signature: string;
+      safeAppId?: number;
+    };
+  }) => Promise<void>;
 };
 
 type NetworkShortName = {
@@ -457,5 +471,43 @@ export default class RequestProvider {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  getMessages(
+    safeAddress: string,
+    options?: Record<string, any>
+  ): Promise<{ results: any[] }> {
+    const checksumAddress = ethers.utils.getAddress(safeAddress);
+    if (this.shouldUseOpenapiService && this.openapiService?.getSafeMessages) {
+      return this.openapiService.getSafeMessages({
+        txServiceUrl: this.prefix,
+        safeAddress: checksumAddress,
+        options,
+      });
+    }
+
+    return this.request.get(`/v1/safes/${checksumAddress}/messages/`, {
+      params: options,
+    });
+  }
+
+  addMessage(
+    safeAddress: string,
+    data: {
+      message: string | Record<string, any>;
+      signature: string;
+      safeAppId?: number;
+    }
+  ): Promise<void> {
+    const checksumAddress = ethers.utils.getAddress(safeAddress);
+    if (this.shouldUseOpenapiService && this.openapiService?.addSafeMessage) {
+      return this.openapiService.addSafeMessage({
+        txServiceUrl: this.prefix,
+        safeAddress: checksumAddress,
+        data,
+      });
+    }
+
+    return this.request.post(`/v1/safes/${checksumAddress}/messages/`, data);
   }
 }

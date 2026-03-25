@@ -12,6 +12,7 @@ import {
 import { EthSafeMessage, EthSafeTransaction } from "@safe-global/protocol-kit";
 import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
 import SafeApiKit, {
+  GetSafeMessageListOptions,
   SafeMessage as ApiKitSafeMessage,
 } from "@safe-global/api-kit";
 // import { getTransactionServiceUrl } from "@safe-global/api-kit/dist/src/utils/config";
@@ -402,7 +403,7 @@ class Safe {
     const safeAddress = this.safeAddress;
 
     try {
-      return this.apiKit.addMessage(safeAddress, {
+      return this.request.addMessage(safeAddress, {
         message: safeMessage.data as string | ApiKitEIP712TypedData,
         signature: safeMessage.encodedSignatures(),
       });
@@ -410,6 +411,16 @@ class Safe {
       throw new Error(
         "Could not add a new off-chain message to the Safe account",
       );
+    }
+  }
+
+  async getMessages(options?: GetSafeMessageListOptions) {
+    const safeAddress = this.safeAddress;
+
+    try {
+      return this.request.getMessages(safeAddress, options);
+    } catch (error) {
+      throw new Error("Could not get off-chain messages of the Safe account");
     }
   }
 }
