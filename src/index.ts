@@ -12,8 +12,8 @@ import {
 import { EthSafeMessage, EthSafeTransaction } from "@safe-global/protocol-kit";
 import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
 import SafeApiKit, {
-  GetSafeMessageListOptions,
-  SafeMessage as ApiKitSafeMessage,
+  type GetSafeMessageListOptions,
+  type SafeMessage as ApiKitSafeMessage,
 } from "@safe-global/api-kit";
 // import { getTransactionServiceUrl } from "@safe-global/api-kit/dist/src/utils/config";
 import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
@@ -456,4 +456,4 @@ export default Safe;
 
 export type BasicSafeInfo = Awaited<ReturnType<Safe["getBasicSafeInfo"]>>;
 
-export { ApiKitSafeMessage as SafeMessage };
+export type { ApiKitSafeMessage as SafeMessage };
