@@ -12,11 +12,16 @@ import {
 import { EthSafeMessage, EthSafeTransaction } from "@safe-global/protocol-kit";
 import { calculateSafeMessageHash } from "@safe-global/protocol-kit/dist/src/utils";
 import SafeApiKit, {
-  SafeMessage as ApiKitSafeMessage,
+  type GetSafeMessageListOptions,
+  type SafeMessage as ApiKitSafeMessage,
 } from "@safe-global/api-kit";
 // import { getTransactionServiceUrl } from "@safe-global/api-kit/dist/src/utils/config";
 import { getSafeSingletonDeployment } from "@safe-global/safe-deployments";
-import RequestProvider, { getTxServiceUrl, SafeInfo } from "./api";
+import RequestProvider, {
+  getTxServiceUrl,
+  SafeInfo,
+  SafeOpenApiService,
+} from "./api";
 import {
   estimateGasForTransactionExecution,
   generatePreValidatedSignature,
@@ -37,6 +42,7 @@ class Safe {
   apiKit: SafeApiKit;
 
   static adapter: AxiosAdapter;
+  static openapiService?: SafeOpenApiService;
 
   constructor(
     safeAddress: string,
@@ -59,6 +65,7 @@ class Safe {
     this.request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
+      openapiService: Safe.openapiService,
     });
     this.apiKit = Safe.createSafeApiKit(network);
 
@@ -75,6 +82,7 @@ class Safe {
     const request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
+      openapiService: Safe.openapiService,
     });
     return request.getSafeInfo(ethers.utils.getAddress(safeAddress));
   }
@@ -87,6 +95,7 @@ class Safe {
     const request = new RequestProvider({
       networkId: network,
       adapter: Safe.adapter,
+      openapiService: Safe.openapiService,
     });
     const transactions = await request.getPendingTransactions(
       safeAddress,
@@ -94,6 +103,15 @@ class Safe {
     );
 
     return transactions;
+  }
+
+  static async getMessage(messageHash: string, network: string) {
+    const request = new RequestProvider({
+      networkId: network,
+      adapter: Safe.adapter,
+      openapiService: Safe.openapiService,
+    });
+    return request.getMessage(messageHash);
   }
 
   static createSafeApiKit = (network: string) => {
@@ -394,7 +412,7 @@ class Safe {
     const safeAddress = this.safeAddress;
 
     try {
-      return this.apiKit.addMessage(safeAddress, {
+      return this.request.addMessage(safeAddress, {
         message: safeMessage.data as string | ApiKitEIP712TypedData,
         signature: safeMessage.encodedSignatures(),
       });
@@ -404,10 +422,38 @@ class Safe {
       );
     }
   }
+
+  async getMessages(options?: GetSafeMessageListOptions) {
+    const safeAddress = this.safeAddress;
+
+    try {
+      return this.request.getMessages(safeAddress, options);
+    } catch (error) {
+      throw new Error("Could not get off-chain messages of the Safe account");
+    }
+  }
+
+  async getMessage(messageHash: string) {
+    try {
+      return this.request.getMessage(messageHash);
+    } catch (error) {
+      throw new Error("Could not get off-chain message of the Safe account");
+    }
+  }
+
+  async addMessageSignature(messageHash: string, signature: string) {
+    try {
+      return this.request.addMessageSignature(messageHash, signature);
+    } catch (error) {
+      throw new Error(
+        "Could not add an off-chain message signature to the Safe account",
+      );
+    }
+  }
 }
 
 export default Safe;
 
 export type BasicSafeInfo = Awaited<ReturnType<Safe["getBasicSafeInfo"]>>;
 
-export { ApiKitSafeMessage as SafeMessage };
+export type { ApiKitSafeMessage as SafeMessage };

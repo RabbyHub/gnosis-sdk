@@ -47,7 +47,60 @@ export interface SafeTransactionItem {
   signatures: string | null;
 }
 
-const TRANSACTION_SERVICE_URL = "https://api.rabby.io/v1/safe-tx-service";
+export type SafeOpenApiService = {
+  getSafePendingTransactions?: (params: {
+    txServiceUrl: string;
+    safeAddress: string;
+    nonce: number;
+  }) => Promise<{ results: SafeTransactionItem[] }>;
+  postSafeTransactions?: (params: {
+    txServiceUrl: string;
+    safeAddress: string;
+    data: Record<string, any>;
+  }) => Promise<void>;
+  getSafeInfo?: (params: {
+    txServiceUrl: string;
+    safeAddress: string;
+  }) => Promise<SafeInfo>;
+  confirmSafeTransaction?: (params: {
+    txServiceUrl: string;
+    safeTransactionHash: string;
+    data: Record<string, any>;
+  }) => Promise<void>;
+  getSafeTxGas?: (params: {
+    txServiceUrl: string;
+    safeAddress: string;
+    safeTxData: {
+      to: string;
+      value?: string;
+      data?: string | null;
+      operation?: number;
+    };
+  }) => Promise<string | undefined>;
+  getSafeMessages?: (params: {
+    txServiceUrl: string;
+    safeAddress: string;
+    options?: Record<string, any>;
+  }) => Promise<{ results: any[] }>;
+  addSafeMessage?: (params: {
+    txServiceUrl: string;
+    safeAddress: string;
+    data: {
+      message: string | Record<string, any>;
+      signature: string;
+      safeAppId?: number;
+    };
+  }) => Promise<void>;
+  getSafeMessage?: (params: {
+    txServiceUrl: string;
+    messageHash: string;
+  }) => Promise<any>;
+  addSafeMessageSignature?: (params: {
+    txServiceUrl: string;
+    messageHash: string;
+    signature: string;
+  }) => Promise<void>;
+};
 
 type NetworkShortName = {
   shortName: string;
@@ -257,7 +310,7 @@ const networkMap = networks.reduce<Record<string, string>>(
   {}
 );
 
-export const HOST_MAP = {
+export const HOST_MAP: Record<string, string> = {
   /**
    * blast
    */
@@ -267,31 +320,37 @@ export const HOST_MAP = {
 export const getTxServiceUrl = (chainId: string) => {
   const shortName = networkMap[chainId];
   if (shortName) {
-    return `${TRANSACTION_SERVICE_URL}/${shortName}/api`;
+    return `/v1/safe-tx-service/${shortName}/api`;
   }
   return HOST_MAP[chainId];
 };
 
 export default class RequestProvider {
-  host: string;
+  prefix: string;
   request: Axios;
+  openapiService?: SafeOpenApiService;
+  shouldUseOpenapiService: boolean;
 
   constructor({
     networkId,
     adapter,
+    openapiService,
   }: {
     networkId: string;
     adapter?: AxiosAdapter;
+    openapiService?: SafeOpenApiService;
   }) {
     const txServiceUrl = getTxServiceUrl(networkId);
     if (!txServiceUrl) {
       throw new Error("Wrong networkId");
     }
 
-    this.host = txServiceUrl;
+    this.prefix = txServiceUrl;
+    this.openapiService = openapiService;
+    this.shouldUseOpenapiService = !/^https?:\/\//i.test(this.prefix);
 
     this.request = axios.create({
-      baseURL: this.host,
+      baseURL: this.prefix,
       adapter,
     });
 
@@ -304,10 +363,20 @@ export default class RequestProvider {
     safeAddress: string,
     nonce: number
   ): Promise<{ results: SafeTransactionItem[] }> {
+    const checksumAddress = ethers.utils.getAddress(safeAddress);
+    if (
+      this.shouldUseOpenapiService &&
+      this.openapiService?.getSafePendingTransactions
+    ) {
+      return this.openapiService.getSafePendingTransactions({
+        txServiceUrl: this.prefix,
+        safeAddress: checksumAddress,
+        nonce,
+      });
+    }
+
     return this.request.get(
-      `/v1/safes/${ethers.utils.getAddress(
-        safeAddress
-      )}/multisig-transactions/`,
+      `/v1/safes/${checksumAddress}/multisig-transactions/`,
       {
         params: {
           executed: false,
@@ -317,20 +386,54 @@ export default class RequestProvider {
     );
   }
 
-  postTransactions(safeAddres: string, data): Promise<void> {
+  postTransactions(safeAddres: string, data: Record<string, any>): Promise<void> {
+    const checksumAddress = ethers.utils.getAddress(safeAddres);
+    if (
+      this.shouldUseOpenapiService &&
+      this.openapiService?.postSafeTransactions
+    ) {
+      return this.openapiService.postSafeTransactions({
+        txServiceUrl: this.prefix,
+        safeAddress: checksumAddress,
+        data,
+      });
+    }
+
     return this.request.post(
-      `/v1/safes/${ethers.utils.getAddress(safeAddres)}/multisig-transactions/`,
+      `/v1/safes/${checksumAddress}/multisig-transactions/`,
       data
     );
   }
 
   getSafeInfo(safeAddress: string): Promise<SafeInfo> {
+    const checksumAddress = ethers.utils.getAddress(safeAddress);
+    if (this.shouldUseOpenapiService && this.openapiService?.getSafeInfo) {
+      return this.openapiService.getSafeInfo({
+        txServiceUrl: this.prefix,
+        safeAddress: checksumAddress,
+      });
+    }
+
     return this.request.get(
-      `/v1/safes/${ethers.utils.getAddress(safeAddress)}/`
+      `/v1/safes/${checksumAddress}/`
     );
   }
 
-  confirmTransaction(safeTransactionHash: string, data): Promise<void> {
+  confirmTransaction(
+    safeTransactionHash: string,
+    data: Record<string, any>
+  ): Promise<void> {
+    if (
+      this.shouldUseOpenapiService &&
+      this.openapiService?.confirmSafeTransaction
+    ) {
+      return this.openapiService.confirmSafeTransaction({
+        txServiceUrl: this.prefix,
+        safeTransactionHash,
+        data,
+      });
+    }
+
     return this.request.post(
       `/v1/multisig-transactions/${safeTransactionHash}/confirmations/`,
       data
@@ -350,6 +453,19 @@ export default class RequestProvider {
 
     const address = ethers.utils.getAddress(safeAddress);
 
+    if (this.shouldUseOpenapiService && this.openapiService?.getSafeTxGas) {
+      return this.openapiService.getSafeTxGas({
+        txServiceUrl: this.prefix,
+        safeAddress: address,
+        safeTxData: {
+          to: ethers.utils.getAddress(safeTxData.to),
+          value: safeTxData.value || "0",
+          data: safeTxData.data,
+          operation: safeTxData.operation,
+        },
+      });
+    }
+
     try {
       const estimation: { safeTxGas: string } = await this.request.post(
         `/v1/safes/${address}/multisig-transactions/estimations/`,
@@ -364,5 +480,71 @@ export default class RequestProvider {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  getMessages(
+    safeAddress: string,
+    options?: Record<string, any>
+  ): Promise<{ results: any[] }> {
+    const checksumAddress = ethers.utils.getAddress(safeAddress);
+    if (this.shouldUseOpenapiService && this.openapiService?.getSafeMessages) {
+      return this.openapiService.getSafeMessages({
+        txServiceUrl: this.prefix,
+        safeAddress: checksumAddress,
+        options,
+      });
+    }
+
+    return this.request.get(`/v1/safes/${checksumAddress}/messages/`, {
+      params: options,
+    });
+  }
+
+  addMessage(
+    safeAddress: string,
+    data: {
+      message: string | Record<string, any>;
+      signature: string;
+      safeAppId?: number;
+    }
+  ): Promise<void> {
+    const checksumAddress = ethers.utils.getAddress(safeAddress);
+    if (this.shouldUseOpenapiService && this.openapiService?.addSafeMessage) {
+      return this.openapiService.addSafeMessage({
+        txServiceUrl: this.prefix,
+        safeAddress: checksumAddress,
+        data,
+      });
+    }
+
+    return this.request.post(`/v1/safes/${checksumAddress}/messages/`, data);
+  }
+
+  getMessage(messageHash: string): Promise<any> {
+    if (this.shouldUseOpenapiService && this.openapiService?.getSafeMessage) {
+      return this.openapiService.getSafeMessage({
+        txServiceUrl: this.prefix,
+        messageHash,
+      });
+    }
+
+    return this.request.get(`/v1/messages/${messageHash}/`);
+  }
+
+  addMessageSignature(messageHash: string, signature: string): Promise<void> {
+    if (
+      this.shouldUseOpenapiService &&
+      this.openapiService?.addSafeMessageSignature
+    ) {
+      return this.openapiService.addSafeMessageSignature({
+        txServiceUrl: this.prefix,
+        messageHash,
+        signature,
+      });
+    }
+
+    return this.request.post(`/v1/messages/${messageHash}/signatures/`, {
+      signature,
+    });
   }
 }
