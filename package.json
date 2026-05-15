@@ -1,10 +1,11 @@
 {
   "name": "@rabby-wallet/gnosis-sdk",
-  "version": "1.4.8",
+  "version": "1.4.9-1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "update-tx-service-networks": "node scripts/update-tx-service-networks.js",
     "prepublishOnly": "yarn build"
   },
   "author": "",
@@ -17,7 +18,7 @@
     "@ethersproject/solidity": "5.5.0",
     "@safe-global/api-kit": "4.0.0",
     "@safe-global/protocol-kit": "5.2.1",
-    "@safe-global/safe-deployments": "1.37.49",
+    "@safe-global/safe-deployments": "1.37.55",
     "@safe-global/types-kit": "1.0.2",
     "axios": "0.24.0",
     "ethereumjs-util": "7.1.3",
