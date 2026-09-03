@@ -1,24 +1,19 @@
 {
   "compilerOptions": {
     "baseUrl": "./",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
     "module": "ESNext",
     "target": "ES2020",
     "moduleResolution": "node",
+    "lib": ["ES2020", "DOM"],
     "resolveJsonModule": true,
-    "noImplicitAny": false,
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "allowJs": true,
-    "plugins": [
-      { "transform": "typescript-transform-paths", "afterDeclarations": true }
-    ],
-    "outDir": "./dist",
+    "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "skipLibCheck": true
   },
-  "exclude": ["./node_modules"],
-  "include": ["src", "__tests__"]
+  "include": ["src"]
 }
