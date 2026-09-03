@@ -6,7 +6,7 @@ const SAFE_TX_SERVICE_NETWORKS_URL =
   "https://raw.githubusercontent.com/safe-global/safe-docs/main/components/ApiReference/tx-service-networks.json";
 const DEBANK_SUPPORTED_CHAINS_URL =
   "https://static.debank.com/supported_chains.json";
-const OUTPUT_PATH = path.resolve(__dirname, "../src/txServiceNetworks.json");
+const OUTPUT_PATH = path.resolve(__dirname, "../src/chains/networks.json");
 
 const chainServerIdEnumMap = {
   eth: "ETH",
