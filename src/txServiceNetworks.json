@@ -55,11 +55,6 @@
     "enum": "OPBNB"
   },
   {
-    "chainId": "232",
-    "shortName": "lens",
-    "enum": "LENS"
-  },
-  {
     "chainId": "324",
     "shortName": "zksync",
     "enum": "ERA"
@@ -68,6 +63,10 @@
     "chainId": "480",
     "shortName": "wc",
     "enum": "WORLD"
+  },
+  {
+    "chainId": "677",
+    "shortName": "bot"
   },
   {
     "chainId": "988",
@@ -80,8 +79,8 @@
     "enum": "HYPER"
   },
   {
-    "chainId": "1101",
-    "shortName": "zkevm"
+    "chainId": "1001",
+    "shortName": "kairos"
   },
   {
     "chainId": "1672",
@@ -90,11 +89,6 @@
   {
     "chainId": "3338",
     "shortName": "peaq"
-  },
-  {
-    "chainId": "3637",
-    "shortName": "btc",
-    "enum": "BOTANIX"
   },
   {
     "chainId": "4217",
@@ -107,6 +101,11 @@
     "enum": "MEGAETH"
   },
   {
+    "chainId": "4663",
+    "shortName": "robinhood",
+    "enum": "HOOD"
+  },
+  {
     "chainId": "5000",
     "shortName": "mantle",
     "enum": "MANTLE"
@@ -114,6 +113,16 @@
   {
     "chainId": "5003",
     "shortName": "mnt-sep"
+  },
+  {
+    "chainId": "5042",
+    "shortName": "arc",
+    "enum": "ARC"
+  },
+  {
+    "chainId": "8217",
+    "shortName": "kaia",
+    "enum": "KLAY"
   },
   {
     "chainId": "8453",
@@ -188,10 +197,6 @@
     "chainId": "80094",
     "shortName": "berachain",
     "enum": "BERA"
-  },
-  {
-    "chainId": "81224",
-    "shortName": "codex"
   },
   {
     "chainId": "84532",

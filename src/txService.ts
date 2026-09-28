@@ -8,8 +8,7 @@ type NetworkShortName = {
 
 export const GNOSIS_SUPPORT_CHAINS = (networks as NetworkShortName[])
   .map((item) => item.enum)
-  .filter((e): e is string => Boolean(e))
-  .concat(["BLAST"]);
+  .filter((e): e is string => Boolean(e));
 
 const networkMap = (networks as NetworkShortName[]).reduce<
   Record<string, string>
@@ -18,12 +17,7 @@ const networkMap = (networks as NetworkShortName[]).reduce<
   return acc;
 }, {});
 
-export const HOST_MAP: Record<string, string> = {
-  /**
-   * blast
-   */
-  "81457": "https://safe-transaction-blast.safe.global/api",
-};
+export const HOST_MAP: Record<string, string> = {};
 
 export const getTxServiceUrl = (chainId: string) => {
   const shortName = networkMap[chainId];
